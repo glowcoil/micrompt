@@ -2897,7 +2897,7 @@ LRESULT CViewSample::OnMidiMsg(WPARAM midiDataParam, LPARAM)
 	CSoundFile *pSndFile = (pModDoc) ? &pModDoc->GetSoundFile() : nullptr;
 	if (!pSndFile) return 0;
 
-	uint8 nNote = midiByte1 + NOTE_MIN;
+	uint16 nNote = midiByte1 * 100 + NOTE_MIN;
 	int nVol = midiByte2;
 	MIDIEvents::EventType event  = MIDIEvents::GetTypeFromEvent(midiData);
 	if(event == MIDIEvents::evNoteOn && !nVol)

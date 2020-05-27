@@ -1072,8 +1072,8 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 			}
 			if(chnMask[ch] & 1)	// Note
 			{
-				uint8 note = patternData.ReadUint8();
-				if(note < 0x80)
+				ModCommand::NOTE note = patternData.ReadUint16LE();
+				if(note < 0x4000)
 					note += NOTE_MIN;
 				if(!(GetType() & MOD_TYPE_MPT))
 				{
@@ -1642,8 +1642,8 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 		for(ROWINDEX row = 0; row < writeRows; row++)
 		{
 			uint32 len = 0;
-			// Maximum 7 bytes per cell, plus end of row marker, so this buffer is always large enough to cover one row.
-			uint8 buf[7 * MAX_BASECHANNELS + 1];
+			// Maximum 8 bytes per cell, plus end of row marker, so this buffer is always large enough to cover one row.
+			uint8 buf[8 * MAX_BASECHANNELS + 1];
 			const ModCommand *m = Patterns[pat].GetpModCommand(row, 0);
 
 			for(CHANNELINDEX ch = 0; ch < maxChannels; ch++, m++)
@@ -1659,7 +1659,7 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 				uint8 command = m->command;
 				uint8 param = m->param;
 				uint8 vol = 0xFF;
-				uint8 note = m->note;
+				uint16 note = m->note;
 				if (note != NOTE_NONE) b |= 1;
 				if (m->IsNote()) note -= NOTE_MIN;
 				if (note == NOTE_FADE && GetType() != MOD_TYPE_MPT) note = 0xF6;
@@ -1765,7 +1765,11 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 					{
 						buf[len++] = static_cast<uint8>(ch + 1);
 					}
-					if (b & 1) buf[len++] = note;
+					if(b & 1)
+					{
+						buf[len++] = static_cast<uint8>(note);
+						buf[len++] = static_cast<uint8>(note >> 8);
+					}
 					if (b & 2) buf[len++] = m->instr;
 					if (b & 4) buf[len++] = vol;
 					if (b & 8)

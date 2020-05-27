@@ -63,7 +63,7 @@ protected:
 	bool m_bGridForceRedraw = false;
 	bool m_mouseMoveModified = false;
 
-	std::bitset<128> m_baPlayingNote;
+	std::bitset<16384> m_baPlayingNote;
 	CModDoc::NoteToChannelMap m_noteChannel;	// Note -> Preview channel assignment
 	std::array<uint32, MAX_CHANNELS> m_dwNotifyPos;
 

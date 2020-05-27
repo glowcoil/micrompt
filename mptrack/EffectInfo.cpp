@@ -998,7 +998,7 @@ bool EffectInfo::GetVolCmdParamInfo(const ModCommand &m, CString *s) const
 			SAMPLEINDEX smp = m.instr;
 			if(smp > 0 && smp <= sndFile.GetNumInstruments() && m.IsNote() && sndFile.Instruments[smp] != nullptr)
 			{
-				smp = sndFile.Instruments[smp]->Keyboard[m.note - NOTE_MIN];
+				smp = sndFile.Instruments[smp]->Keyboard[(m.note - NOTE_MIN) / 100];
 			}
 			if(smp > 0 && smp <= sndFile.GetNumSamples() && m.vol > 0 && m.vol <= CountOf(sndFile.GetSample(smp).cues))
 				param = sndFile.GetSample(smp).cues[m.vol - 1];

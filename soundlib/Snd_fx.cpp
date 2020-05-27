@@ -548,7 +548,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 						if(pIns->dwFlags[INS_SETPANNING])
 							chn.SetInstrumentPan(pIns->nPan, *this);
 						if(ModCommand::IsNote(note))
-							smp = pIns->Keyboard[note - NOTE_MIN];
+							smp = pIns->Keyboard[(note - NOTE_MIN) / 100];
 					}
 				} else
 				{
@@ -1370,14 +1370,14 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 		// Impulse Tracker ignores empty slots.
 		// We won't ignore them if a plugin is assigned to this slot, so that VSTis still work as intended.
 		// Test case: emptyslot.it, PortaInsNum.it, gxsmp.it, gxsmp2.it
-		if(pIns->Keyboard[note - NOTE_MIN] == 0 && m_playBehaviour[kITEmptyNoteMapSlot] && !pIns->HasValidMIDIChannel())
+		if(pIns->Keyboard[(note - NOTE_MIN) / 100] == 0 && m_playBehaviour[kITEmptyNoteMapSlot] && !pIns->HasValidMIDIChannel())
 		{
 			chn.pModInstrument = pIns;
 			return;
 		}
 
-		if(pIns->NoteMap[note - NOTE_MIN] > NOTE_MAX) return;
-		uint32 n = pIns->Keyboard[note - NOTE_MIN];
+		if(pIns->GetMappedNote(note) > NOTE_MAX) return;
+		uint32 n = pIns->Keyboard[(note - NOTE_MIN) / 100];
 		pSmp = ((n) && (n < MAX_SAMPLES)) ? &Samples[n] : nullptr;
 	} else if(GetNumInstruments())
 	{
@@ -1723,7 +1723,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 
 	if((pIns) && (note - NOTE_MIN < (int)std::size(pIns->Keyboard)))
 	{
-		uint32 n = pIns->Keyboard[note - NOTE_MIN];
+		uint32 n = pIns->Keyboard[(note - NOTE_MIN) / 100];
 		if((n) && (n < MAX_SAMPLES))
 		{
 			pSmp = &Samples[n];
@@ -1734,7 +1734,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 			// Test case: emptyslot.it, PortaInsNum.it, gxsmp.it, gxsmp2.it
 			return;
 		}
-		note = pIns->NoteMap[note - NOTE_MIN];
+		note = pIns->GetMappedNote(note);
 	}
 	// Key Off
 	if(note > NOTE_MAX)
@@ -2196,8 +2196,8 @@ CHANNELINDEX CSoundFile::CheckNNA(CHANNELINDEX nChn, uint32 instr, int note, boo
 	pIns = instr > 0 ? Instruments[instr] : srcChn.pModInstrument;
 	if(pIns != nullptr)
 	{
-		uint32 n = pIns->Keyboard[note - NOTE_MIN];
-		note = pIns->NoteMap[note - NOTE_MIN];
+		uint32 n = pIns->Keyboard[(note - NOTE_MIN) / 100];
+		note = pIns->GetMappedNote(note);
 		if ((n) && (n < MAX_SAMPLES))
 		{
 			pSample = &Samples[n];
@@ -2653,7 +2653,7 @@ bool CSoundFile::ProcessEffects()
 						// Instrument mode
 						if(instr <= GetNumInstruments() && Instruments[instr] != nullptr)
 						{
-							sample = Instruments[instr]->Keyboard[note - NOTE_MIN];
+							sample = Instruments[instr]->Keyboard[(note - NOTE_MIN) / 100];
 						}
 					} else
 					{
@@ -2855,7 +2855,7 @@ bool CSoundFile::ProcessEffects()
 						smp = 0;
 						if(instr <= GetNumInstruments() && Instruments[instr] != nullptr && ModCommand::IsNote(chn.nLastNote))
 						{
-							smp = Instruments[instr]->Keyboard[chn.nLastNote - NOTE_MIN];
+							smp = Instruments[instr]->Keyboard[(chn.nLastNote - NOTE_MIN) / 100];
 						}
 					}
 					if(smp > 0 && smp <= GetNumSamples() && !Samples[smp].uFlags[SMP_NODEFAULTVOLUME])
@@ -5355,7 +5355,7 @@ void CSoundFile::SampleOffset(ModChannel &chn, SmpLength param) const
 		// Test case: empty_sample_offset.it
 		if(chn.pModInstrument != nullptr)
 		{
-			SAMPLEINDEX smp = chn.pModInstrument->Keyboard[chn.rowCommand.note - NOTE_MIN];
+			SAMPLEINDEX smp = chn.pModInstrument->Keyboard[(chn.rowCommand.note - NOTE_MIN) / 100];
 			if(smp == 0 || smp > GetNumSamples())
 				return;
 		}
@@ -5922,7 +5922,8 @@ uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 nFineTune, uint32 nC5Spe
 		{
 			// In IT linear slide mode, directly use frequency in Hertz rather than periods.
 			if(m_playBehaviour[kHertzInLinearMode] || GetType() == MOD_TYPE_669)
-				return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
+				return (uint32)round((float)nC5Speed * powf(2.0, ((float)note / 1200.0) - 5.0));
+				//return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
 			else
 				return (FreqS3MTable[note % 12u] << 5) >> (note / 12);
 		} else

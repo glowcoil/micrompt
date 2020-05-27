@@ -1080,12 +1080,12 @@ bool CSoundFile::ReadPATInstrument(INSTRUMENTINDEX nInstr, FileReader &file)
 		int32 nBaseNote = (sampleHeader.root_freq > 100) ? PatchFreqToNoteInt(sampleHeader.root_freq) : -1;
 		if(!sampleHeader.scale_factor && layerHeader.samples == 1) { nMinNote = 0; nMaxNote = NOTE_MAX; }
 		// Fill Note Map
-		for(int32 k = 0; k < NOTE_MAX; k++)
+		for(int32 k = 0; k < NOTE_MAX / 100; k++)
 		{
 			if(k == nBaseNote || (!pIns->Keyboard[k] && k >= nMinNote && k <= nMaxNote))
 			{
 				if(!sampleHeader.scale_factor)
-					pIns->NoteMap[k] = NOTE_MIDDLEC;
+					pIns->NoteMap[k] = (uint8)((NOTE_MIDDLEC - NOTE_MIN) / 100 + NOTE_MIN);
 
 				pIns->Keyboard[k] = nextSample;
 				if(k < nMinSmpNote)
@@ -1099,7 +1099,7 @@ bool CSoundFile::ReadPATInstrument(INSTRUMENTINDEX nInstr, FileReader &file)
 	if(nMinSmp)
 	{
 		// Fill note map and missing samples
-		for(uint8 k = 0; k < NOTE_MAX; k++)
+		for(uint8 k = 0; k < NOTE_MAX / 100; k++)
 		{
 			if(!pIns->NoteMap[k]) pIns->NoteMap[k] = k + 1;
 			if(!pIns->Keyboard[k])
@@ -2298,7 +2298,7 @@ bool CSoundFile::ReadITISample(SAMPLEINDEX nSample, FileReader &file)
 		return false;
 
 	// Preferrably read the middle-C sample
-	auto sample = dummy.Keyboard[NOTE_MIDDLEC - NOTE_MIN];
+	auto sample = dummy.Keyboard[(NOTE_MIDDLEC - NOTE_MIN) / 100];
 	if(sample > 0)
 		sample--;
 	else
@@ -2391,7 +2391,7 @@ bool CSoundFile::SaveITIInstrument(INSTRUMENTINDEX nInstr, std::ostream &f, cons
 	// Create sample assignment table
 	std::vector<SAMPLEINDEX> smptable;
 	std::vector<uint8> smpmap(GetNumSamples(), 0);
-	for(size_t i = 0; i < NOTE_MAX; i++)
+	for(size_t i = 0; i < NOTE_MAX / 100; i++)
 	{
 		const SAMPLEINDEX smp = pIns->Keyboard[i];
 		if(smp && smp <= GetNumSamples())

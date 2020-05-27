@@ -207,7 +207,7 @@ protected:
 	std::array<uint16, MAX_BASECHANNELS> ChnVUMeters;
 	std::array<uint16, MAX_BASECHANNELS> OldVUMeters;
 
-	std::bitset<128> m_baPlayingNote;
+	std::bitset<16384> m_baPlayingNote;
 	CModDoc::NoteToChannelMap m_noteChannel;  // Note -> Preview channel assignment
 	std::array<ModCommand::NOTE, 10> m_octaveKeyMemory;
 	std::array<ModCommand::NOTE, MAX_BASECHANNELS> previousNote;

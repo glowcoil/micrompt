@@ -39,6 +39,8 @@
 #include "../unarchiver/unarchiver.h"
 #endif // NO_ARCHIVE_SUPPORT
 
+#include <wchar.h>
+
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -1333,7 +1335,7 @@ SAMPLEINDEX CSoundFile::DetectUnusedSamples(std::vector<bool> &sampleUsed) const
 							ModInstrument *pIns = Instruments[p->instr];
 							if (pIns)
 							{
-								SAMPLEINDEX n = pIns->Keyboard[p->note - NOTE_MIN];
+								SAMPLEINDEX n = pIns->Keyboard[(p->note - NOTE_MIN) / 100];
 								if (n <= GetNumSamples()) sampleUsed[n] = true;
 							}
 						}
@@ -1346,7 +1348,7 @@ SAMPLEINDEX CSoundFile::DetectUnusedSamples(std::vector<bool> &sampleUsed) const
 							ModInstrument *pIns = Instruments[k];
 							if (pIns)
 							{
-								SAMPLEINDEX n = pIns->Keyboard[p->note - NOTE_MIN];
+								SAMPLEINDEX n = pIns->Keyboard[(p->note - NOTE_MIN) / 100];
 								if (n <= GetNumSamples()) sampleUsed[n] = true;
 							}
 						}
@@ -1476,20 +1478,20 @@ mpt::ustring CSoundFile::GetNoteName(const ModCommand::NOTE note, const NoteName
 	{
 		// cppcheck false-positive
 		// cppcheck-suppress constStatement
-		const mpt::uchar specialNoteNames[][4] = { UL_("PCs"), UL_("PC "), UL_("~~~"), UL_("^^^"), UL_("===") };
+		const mpt::uchar specialNoteNames[][7] = { UL_("PCs   "), UL_("PC    "), UL_("~~~~~~"), UL_("^^^^^^"), UL_("======") };
 		static_assert(CountOf(specialNoteNames) == NOTE_MAX_SPECIAL - NOTE_MIN_SPECIAL + 1);
 		return specialNoteNames[note - NOTE_MIN_SPECIAL];
 	} else if(ModCommand::IsNote(note))
 	{
+		wchar_t noteStr[7];
+		swprintf(noteStr, 7, L"%d-%04d", (note - NOTE_MIN) / 1200, (note - NOTE_MIN) % 1200);
 		return mpt::ustring()
-			.append(noteNames[(note - NOTE_MIN) % 12])
-			.append(1, UC_('0') + (note - NOTE_MIN) / 12)
-			;	// e.g. "C#" + "5"
+		    .append(noteStr);
 	} else if(note == NOTE_NONE)
 	{
-		return UL_("...");
+		return UL_("......");
 	}
-	return UL_("???");
+	return UL_("??????");
 }
 
 
@@ -1817,7 +1819,7 @@ bool CSoundFile::IsSampleReferencedByInstrument(SAMPLEINDEX sample, INSTRUMENTIN
 	}
 	if(targetIns != nullptr)
 	{
-		for(size_t note = 0; note < NOTE_MAX /*CountOf(targetIns->Keyboard)*/; note++)
+		for(size_t note = 0; note < NOTE_MAX / 100 /*CountOf(targetIns->Keyboard)*/; note++)
 		{
 			if(targetIns->Keyboard[note] == sample)
 			{

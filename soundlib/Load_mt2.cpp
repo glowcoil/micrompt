@@ -1107,7 +1107,7 @@ bool CSoundFile::ReadMT2(FileReader &file, ModLoadingFlags loadFlags)
 						}
 						if(sampleSynchronized[sample - 1])
 						{
-							mptIns->NoteMap[note + 11 + NOTE_MIN] = NOTE_MIDDLEC;
+							mptIns->NoteMap[note + 11 + NOTE_MIN] = (uint8)NOTE_MIDDLEC;
 						}
 					}
 					// TODO: volume, finetune for duplicated samples

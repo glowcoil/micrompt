@@ -138,7 +138,7 @@ void CModDoc::AppendModule(const CSoundFile &source)
 					AddToLog("Too many samples!");
 					break;
 				}
-				m_SndFile.ReadSampleFromSong(targetSmp, source, source.Instruments[i]->Keyboard[NOTE_MIDDLEC - NOTE_MIN]);
+				m_SndFile.ReadSampleFromSong(targetSmp, source, source.Instruments[i]->Keyboard[(NOTE_MIDDLEC - NOTE_MIN) / 100]);
 				instrMapping[i] = targetSmp;
 			}
 		} else

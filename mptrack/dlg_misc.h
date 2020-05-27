@@ -221,7 +221,7 @@ protected:
 	CSliderCtrl m_SbOctave;
 	CSoundFile &sndFile;
 	INSTRUMENTINDEX m_nInstrument;
-	SAMPLEINDEX KeyboardMap[NOTE_MAX];
+	SAMPLEINDEX KeyboardMap[NOTE_MAX / 100];
 	MouseAction mouseAction;
 
 public:

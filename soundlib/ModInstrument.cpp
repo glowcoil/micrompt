@@ -168,7 +168,7 @@ void ModInstrument::Convert(MODTYPE fromType, MODTYPE toType)
 
 		nCutSwing = nPanSwing = nResSwing = nVolSwing = 0;
 
-		nPPC = NOTE_MIDDLEC - 1;
+		nPPC = (uint8)NOTE_MIDDLEC - 1;
 		nPPS = 0;
 
 		nNNA = NNA_NOTECUT;
@@ -293,7 +293,7 @@ void ModInstrument::Sanitize(MODTYPE modType)
 
 	for(size_t i = 0; i < std::size(NoteMap); i++)
 	{
-		if(NoteMap[i] < NOTE_MIN || NoteMap[i] > NOTE_MAX)
+		if(NoteMap[i] < NOTE_MIN || NoteMap[i] > NOTE_MAX / 100)
 			NoteMap[i] = static_cast<uint8>(i + NOTE_MIN);
 	}
 

@@ -213,7 +213,7 @@ std::string PatternClipboard::CreateClipboardString(const CSoundFile &sndFile, P
 	const CHANNELINDEX startChan = selection.GetStartChannel(), numChans = selection.GetNumChannels();
 
 	std::string data;
-	data.reserve(numRows * (numChans * 12 + 2));
+	data.reserve(numRows * (numChans * 15 + 2));
 
 	for(ROWINDEX row = 0; row < numRows; row++)
 	{
@@ -230,19 +230,11 @@ std::string PatternClipboard::CreateClipboardString(const CSoundFile &sndFile, P
 			// Note
 			if(selection.ContainsHorizontal(cursor))
 			{
-				if(m->IsNote())
-				{
-					// Need to guarantee that sharps are used for the clipboard.
-					data += mpt::ToCharset(mpt::Charset::Locale, mpt::ustring(NoteNamesSharp[(m->note - NOTE_MIN) % 12]));
-					data += ('0' + (m->note - NOTE_MIN) / 12);
-				} else
-				{
-					data += mpt::ToCharset(mpt::Charset::Locale, sndFile.GetNoteName(m->note));
-				}
+				data += mpt::ToCharset(mpt::Charset::Locale, sndFile.GetNoteName(m->note));
 			} else
 			{
 				// No note
-				data += "   ";
+				data += "      ";
 			}
 
 			// Instrument
@@ -694,7 +686,7 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 		success = true;
 		col = startChan;
 		// Paste columns
-		while((pos + 11 < data.size()) && (data[pos] == '|'))
+		while((pos + 14 < data.size()) && (data[pos] == '|'))
 		{
 			pos++;
 			// Handle pasting large pattern into smaller pattern (e.g. 128-row pattern into MOD, which only allows 64 rows)
@@ -756,64 +748,67 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 							m.note = NOTE_PC;
 					} else if (data[pos] != '.')
 					{
-						// Check note names
-						for(uint8 i = 0; i < 12; i++)
+						int octave = data[pos] - '0';
+						int cents1000 = data[pos + 2] - '0';
+						int cents100 = data[pos + 3] - '0';
+						int cents10 = data[pos + 4] - '0';
+						int cents1 = data[pos + 5] - '0';
+						if(octave >= 0 && octave <= 9 &&
+							cents1000 >= 0 && cents1000 <= 1 &&
+							cents100 >= 0 && cents100 <= 1 &&
+							cents10 >= 0 && cents10 <= 9 &&
+							cents1 >= 0 && cents1 <= 9 &&
+							data[pos + 1] == '-')
 						{
-							if(data[pos] == NoteNamesSharp[i][0] && data[pos + 1] == NoteNamesSharp[i][1])
-							{
-								m.note = ModCommand::NOTE(i + NOTE_MIN);
-								break;
-							}
-						}
-						if(m.note != NOTE_NONE)
+							m.note = ModCommand::NOTE(NOTE_MIN);
+							m.note += (uint16)octave * 1200;
+							m.note += (uint16)cents1000 * 1000;
+							m.note += (uint16)cents100 * 100;
+							m.note += (uint16)cents10 * 10;
+							m.note += (uint16)cents1;
+						} else
 						{
-							// Check octave
-							m.note += (data[pos + 2] - '0') * 12;
-							if(!m.IsNote())
-							{
-								// Invalid octave
-								m.note = NOTE_NONE;
-							}
+							m.note = NOTE_NONE;
 						}
 					}
 				}
 
 				// Instrument
-				if(data[pos + 3] > ' ' && (!doMixPaste || ( (!doITStyleMix && origModCmd.instr == 0) || 
+				if(data[pos + 6] > ' ' && (!doMixPaste || ( (!doITStyleMix && origModCmd.instr == 0) || 
 					(doITStyleMix && origModCmd.note == NOTE_NONE && origModCmd.instr == 0 && origModCmd.volcmd == VOLCMD_NONE) ) ))
 				{
 					firstCol = std::min(firstCol, PatternCursor::instrColumn);
 					lastCol = std::max(lastCol, PatternCursor::instrColumn);
-					if(data[pos + 3] >= '0' && data[pos + 3] <= ('0' + (MAX_INSTRUMENTS / 10)))
+					if(data[pos + 6] >= '0' && data[pos + 6] <= ('0' + (MAX_INSTRUMENTS / 10)))
 					{
-						m.instr = (data[pos + 3] - '0') * 10 + (data[pos + 4] - '0');
+						m.instr = (data[pos + 6] - '0') * 10 + (data[pos + 7] - '0');
 					} else m.instr = 0;
 				}
 
 				// Volume
-				if(data[pos + 5] > ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.volcmd == VOLCMD_NONE) || 
+				if(data[pos + 8] > ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.volcmd == VOLCMD_NONE) || 
 					(doITStyleMix && origModCmd.note == NOTE_NONE && origModCmd.instr == 0 && origModCmd.volcmd == VOLCMD_NONE))))
 				{
 					firstCol = std::min(firstCol, PatternCursor::volumeColumn);
 					lastCol = std::max(lastCol, PatternCursor::volumeColumn);
-					if(data[pos + 5] != '.')
+					if(data[pos + 8] != '.')
 					{
 						if(m.IsPcNote())
 						{
-							m.SetValueVolCol(ConvertStrTo<uint16>(data.substr(pos + 5, 3)));
+							m.SetValueVolCol(ConvertStrTo<uint16>(data.substr(pos + 8, 3)));
 						} else
 						{
 							m.volcmd = VOLCMD_NONE;
 							for(int i = VOLCMD_NONE + 1; i < MAX_VOLCMDS; i++)
 							{
 								const char cmd = sourceSpecs.GetVolEffectLetter(static_cast<VolumeCommand>(i));
-								if(data[pos + 5] == cmd && cmd != '?')
+								if(data[pos + 8] == cmd && cmd != '?')
 								{
 									m.volcmd = static_cast<VolumeCommand>(i);
 									break;
 								}
 							}
-							m.vol = (data[pos + 6] - '0') * 10 + (data[pos + 7] - '0');
+							m.vol = (data[pos + 9] - '0') * 10 + (data[pos + 10] - '0');
 						}
 					} else
 					{
@@ -825,11 +820,11 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 				// Effect
 				if(m.IsPcNote())
 				{
-					if(data[pos + 8] != '.' && data[pos + 8] > ' ')
+					if(data[pos + 11] != '.' && data[pos + 11] > ' ')
 					{
 						firstCol = std::min(firstCol, PatternCursor::paramColumn);
 						lastCol = std::max(lastCol, PatternCursor::paramColumn);
-						m.SetValueEffectCol(ConvertStrTo<uint16>(data.substr(pos + 8, 3)));
+						m.SetValueEffectCol(ConvertStrTo<uint16>(data.substr(pos + 11, 3)));
 					} else if(!origModCmd.IsPcNote())
 					{
 						// No value provided in clipboard
@@ -840,18 +835,18 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 					}
 				} else
 				{
-					if(data[pos + 8] > ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.command == CMD_NONE) || 
+					if(data[pos + 11] > ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.command == CMD_NONE) || 
 						(doITStyleMix && origModCmd.command == CMD_NONE && origModCmd.param == 0))))
 					{
 						firstCol = std::min(firstCol, PatternCursor::effectColumn);
 						lastCol = std::max(lastCol, PatternCursor::effectColumn);
 						m.command = CMD_NONE;
-						if(data[pos + 8] != '.')
+						if(data[pos + 11] != '.')
 						{
 							for(int i = CMD_NONE + 1; i < MAX_EFFECTS; i++)
 							{
 								const char cmd = sourceSpecs.GetEffectLetter(static_cast<EffectCommand>(i));
-								if(data[pos + 8] == cmd && cmd != '?')
+								if(data[pos + 11] == cmd && cmd != '?')
 								{
 									m.command = static_cast<EffectCommand>(i);
 									break;
@@ -861,18 +856,18 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 					}
 
 					// Effect value
-					if(data[pos + 9] > ' ' && (!doMixPaste || ((!doITStyleMix && (origModCmd.command == CMD_NONE || origModCmd.param == 0)) || 
+					if(data[pos + 12] > ' ' && (!doMixPaste || ((!doITStyleMix && (origModCmd.command == CMD_NONE || origModCmd.param == 0)) || 
 						(doITStyleMix && origModCmd.command == CMD_NONE && origModCmd.param == 0))))
 					{
 						firstCol = std::min(firstCol, PatternCursor::paramColumn);
 						lastCol = std::max(lastCol, PatternCursor::paramColumn);
 						m.param = 0;
-						if(data[pos + 9] != '.')
+						if(data[pos + 12] != '.')
 						{
 							for(uint8 i = 0; i < 16; i++)
 							{
-								if(data[pos + 9] == szHexChar[i]) m.param |= (i << 4);
-								if(data[pos + 10] == szHexChar[i]) m.param |= i;
+								if(data[pos + 12] == szHexChar[i]) m.param |= (i << 4);
+								if(data[pos + 13] == szHexChar[i]) m.param |= i;
 							}
 						}
 					}

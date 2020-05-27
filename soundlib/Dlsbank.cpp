@@ -1757,7 +1757,7 @@ bool CDLSBank::ExtractInstrument(CSoundFile &sndFile, INSTRUMENTINDEX nInstr, ui
 	int nTranspose = 0;
 	if (pDlsIns->ulBank & F_INSTRUMENT_DRUMS)
 	{
-		for (uint32 iNoteMap=0; iNoteMap<NOTE_MAX; iNoteMap++)
+		for (uint32 iNoteMap=0; iNoteMap<NOTE_MAX / 100; iNoteMap++)
 		{
 			if(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MID|MOD_TYPE_MPT))
 			{
@@ -1826,7 +1826,7 @@ bool CDLSBank::ExtractInstrument(CSoundFile &sndFile, INSTRUMENTINDEX nInstr, ui
 		// Map all notes to the right sample
 		if (nSmp)
 		{
-			for (uint32 iKey=0; iKey<NOTE_MAX; iKey++)
+			for (uint32 iKey=0; iKey<NOTE_MAX / 100; iKey++)
 			{
 				if ((nRgn == nRgnMin) || ((iKey >= pRgn->uKeyMin) && (iKey <= pRgn->uKeyMax)))
 				{

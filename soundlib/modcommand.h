@@ -20,17 +20,17 @@ OPENMPT_NAMESPACE_BEGIN
 class CSoundFile;
 
 // Note definitions
-enum : uint8 // ModCommand::NOTE
+enum : uint16 // ModCommand::NOTE
 {
 	NOTE_NONE        = 0,    // Empty note cell
 	NOTE_MIN         = 1,    // Minimum note value
-	NOTE_MAX         = 120,  // Maximum note value
-	NOTE_MIDDLEC     = (5 * 12 + NOTE_MIN),
-	NOTE_KEYOFF      = 0xFF, // === (Note Off, releases envelope / fades samples, stops plugin note)
-	NOTE_NOTECUT     = 0xFE, // ^^^ (Cuts sample / stops all plugin notes)
-	NOTE_FADE        = 0xFD, // ~~~ (Fades samples, stops plugin note)
-	NOTE_PC          = 0xFC, // Param Control 'note'. Changes param value on first tick.
-	NOTE_PCS         = 0xFB, // Param Control (Smooth) 'note'. Interpolates param value during the whole row.
+	NOTE_MAX         = 12000,  // Maximum note value
+	NOTE_MIDDLEC     = (5 * 1200 + NOTE_MIN),
+	NOTE_KEYOFF      = 0xFFFF, // === (Note Off, releases envelope / fades samples, stops plugin note)
+	NOTE_NOTECUT     = 0xFFFE, // ^^^ (Cuts sample / stops all plugin notes)
+	NOTE_FADE        = 0xFFFD, // ~~~ (Fades samples, stops plugin note)
+	NOTE_PC          = 0xFFFC, // Param Control 'note'. Changes param value on first tick.
+	NOTE_PCS         = 0xFFFB, // Param Control (Smooth) 'note'. Interpolates param value during the whole row.
 	NOTE_MIN_SPECIAL = NOTE_PCS,
 	NOTE_MAX_SPECIAL = NOTE_KEYOFF,
 };
@@ -123,7 +123,7 @@ enum EffectType : uint8
 class ModCommand
 {
 public:
-	typedef uint8 NOTE;
+	typedef uint16 NOTE;
 	typedef uint8 INSTR;
 	typedef uint8 VOL;
 	typedef uint8 VOLCMD;
@@ -215,7 +215,7 @@ public:
 	static bool CombineEffects(uint8 &eff1, uint8 &param1, uint8 &eff2, uint8 &param2);
 
 public:
-	uint8 note = NOTE_NONE;
+	uint16 note = NOTE_NONE;
 	uint8 instr = 0;
 	uint8 volcmd = VOLCMD_NONE;
 	uint8 command = CMD_NONE;

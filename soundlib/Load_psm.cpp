@@ -686,7 +686,7 @@ bool CSoundFile::ReadPSM(FileReader &file, ModLoadingFlags loadFlags)
 					if(!sinariaFormat)
 					{
 						if(note == 0xFF)	// Can be found in a few files but is apparently not supported by MASI
-							note = NOTE_NOTECUT;
+							note = (uint8)NOTE_NOTECUT;
 						else
 							if(note < 129) note = (note & 0x0F) + 12 * (note >> 4) + 13;
 					} else

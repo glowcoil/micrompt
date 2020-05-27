@@ -92,11 +92,11 @@ struct ModChannel
 	ResamplingMode resamplingMode;
 	uint8 nRestoreResonanceOnNewNote; // See nRestorePanOnNewNote
 	uint8 nRestoreCutoffOnNewNote;    // ditto
-	uint8 nNote;
+	ModCommand::NOTE nNote;
 	NewNoteAction nNNA;
-	uint8 nLastNote;                  // Last note, ignoring note offs and cuts - for MIDI macros
+	ModCommand::NOTE nLastNote;                  // Last note, ignoring note offs and cuts - for MIDI macros
 	uint8 nArpeggioLastNote, nArpeggioBaseNote; // For plugin arpeggio
-	uint8 nNewNote, nNewIns, nOldIns, nCommand, nArpeggio;
+	ModCommand::NOTE nNewNote, nNewIns, nOldIns, nCommand, nArpeggio;
 	uint8 nOldVolumeSlide, nOldFineVolUpDown;
 	uint8 nOldPortaUp, nOldPortaDown, nOldFinePortaUpDown, nOldExtraFinePortaUpDown;
 	uint8 nOldPanSlide, nOldChnVolSlide;

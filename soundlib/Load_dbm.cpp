@@ -500,7 +500,7 @@ bool CSoundFile::ReadDBM(FileReader &file, ModLoadingFlags loadFlags)
 
 				if(b & 0x01)
 				{
-					uint8 note = chunk.ReadUint8();
+					ModCommand::NOTE note = chunk.ReadUint8();
 
 					if(note == 0x1F)
 						note = NOTE_KEYOFF;

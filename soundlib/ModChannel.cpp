@@ -124,9 +124,9 @@ ModCommand::NOTE ModChannel::GetPluginNote(bool realNoteMapping) const
 	}
 	ModCommand::NOTE plugNote = mpt::saturate_cast<ModCommand::NOTE>(nNote - nTranspose);
 	// Caution: When in compatible mode, ModChannel::nNote stores the "real" note, not the mapped note!
-	if(realNoteMapping && pModInstrument != nullptr && plugNote >= NOTE_MIN && plugNote < (std::size(pModInstrument->NoteMap) + NOTE_MIN))
+	if(realNoteMapping && pModInstrument != nullptr && plugNote >= NOTE_MIN && (plugNote - NOTE_MIN) / 100 < (std::size(pModInstrument->NoteMap)))
 	{
-		plugNote = pModInstrument->NoteMap[plugNote - NOTE_MIN];
+		plugNote = pModInstrument->GetMappedNote(plugNote);
 	}
 	return plugNote;
 }
@@ -154,7 +154,7 @@ void ModChannel::RecalcTuningFreq(Tuning::RATIOTYPE vibratoFactor, Tuning::NOTEI
 	ModCommand::NOTE note = ModCommand::IsNote(nNote) ? nNote : nLastNote;
 
 	if(sndFile.m_playBehaviour[kITRealNoteMapping] && note >= NOTE_MIN && note <= NOTE_MAX)
-		note = pModInstrument->NoteMap[note - NOTE_MIN];
+		note = pModInstrument->GetMappedNote(note);
 
 	nPeriod = mpt::saturate_round<uint32>((nC5Speed << FREQ_FRACBITS) * vibratoFactor * pModInstrument->pTuning->GetRatio(note - NOTE_MIDDLEC + arpeggioSteps, nFineTune + m_PortamentoFineSteps));
 }

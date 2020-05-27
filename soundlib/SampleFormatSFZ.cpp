@@ -760,8 +760,8 @@ bool CSoundFile::ReadSFZInstrument(INSTRUMENTINDEX nInstr, FileReader &file)
 		uint8 keyLo = region.keyLo, keyHi = region.keyHi;
 		if(keyLo > keyHi)
 			continue;
-		Clamp<uint8, uint8>(keyLo, 0, NOTE_MAX - NOTE_MIN);
-		Clamp<uint8, uint8>(keyHi, 0, NOTE_MAX - NOTE_MIN);
+		Clamp<uint8, uint8>(keyLo, 0, (uint8)NOTE_MAX - (uint8)NOTE_MIN);
+		Clamp<uint8, uint8>(keyHi, 0, (uint8)NOTE_MAX - (uint8)NOTE_MIN);
 		SAMPLEINDEX smp = GetNextFreeSample(nInstr, prevSmp + 1);
 		if(smp == SAMPLEINDEX_INVALID)
 			break;

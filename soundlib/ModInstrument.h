@@ -87,7 +87,7 @@ struct ModInstrument
 	FilterMode filterMode = FilterMode::Unchanged;  // Default filter mode
 
 	int8 nPPS = 0;                               // Pitch/Pan separation (i.e. how wide the panning spreads, -32...32)
-	uint8 nPPC = NOTE_MIDDLEC - NOTE_MIN;        // Pitch/Pan centre (zero-based)
+	uint8 nPPC = (NOTE_MIDDLEC - NOTE_MIN) / 100;        // Pitch/Pan centre (zero-based)
 
 	uint16 wMidiBank = 0;    // MIDI Bank (1...16384). 0 = Don't send.
 	uint8 nMidiProgram = 0;  // MIDI Program (1...128). 0 = Don't send.
@@ -185,6 +185,12 @@ struct ModInstrument
 
 	// Sanitize all instrument data.
 	void Sanitize(MODTYPE modType);
+
+	inline ModCommand::NOTE GetMappedNote(UINT note) const
+	{
+		int rounded = (note - NOTE_MIN) / 100;
+		return static_cast<ModCommand::NOTE>(note + 100 * (NoteMap[rounded] - 1) - 100 * rounded);
+	}
 
 };
 

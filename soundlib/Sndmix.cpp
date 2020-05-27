@@ -1404,7 +1404,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEIND
 		{
 			uint8 step = 0;
 			const bool arpOnRow = (chn.rowCommand.command == CMD_ARPEGGIO);
-			const ModCommand::NOTE lastNote = ModCommand::IsNote(chn.nLastNote) ? static_cast<ModCommand::NOTE>(pIns->NoteMap[chn.nLastNote - NOTE_MIN]) : static_cast<ModCommand::NOTE>(NOTE_NONE);
+			const ModCommand::NOTE lastNote = ModCommand::IsNote(chn.nLastNote) ? static_cast<ModCommand::NOTE>(pIns->GetMappedNote(chn.nLastNote)) : static_cast<ModCommand::NOTE>(NOTE_NONE);
 			if(arpOnRow)
 			{
 				switch(m_PlayState.m_nTickCount % 3)
@@ -2529,7 +2529,7 @@ void CSoundFile::ProcessMidiOut(CHANNELINDEX nChn)
 		{
 			ModCommand::NOTE realNote = note;
 			if(ModCommand::IsNote(note))
-				realNote = pIns->NoteMap[note - NOTE_MIN];
+				realNote = pIns->GetMappedNote(note);
 			SendMIDINote(nChn, realNote, static_cast<uint16>(chn.nVolume));
 		} else if(hasVolCommand)
 		{
@@ -2560,7 +2560,7 @@ void CSoundFile::ProcessMidiOut(CHANNELINDEX nChn)
 
 		ModCommand::NOTE realNote = note;
 		if(ModCommand::IsNote(note))
-			realNote = pIns->NoteMap[note - NOTE_MIN];
+			realNote = pIns->GetMappedNote(note);
 		// Experimental VST panning
 		//ProcessMIDIMacro(nChn, false, m_MidiCfg.szMidiGlb[MIDIOUT_PAN], 0, nPlugin);
 		SendMIDINote(nChn, realNote, static_cast<uint16>(velocity));

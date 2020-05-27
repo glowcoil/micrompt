@@ -2011,13 +2011,13 @@ void CViewInstrument::PlayNote(ModCommand::NOTE note)
 	{
 		return;
 	}
-	if(note > 0 && note < 128)
+	if(note > 0 && note < 16384)
 	{
 		if(m_nInstrument && !m_baPlayingNote[note])
 		{
 			CSoundFile &sndFile = pModDoc->GetSoundFile();
 			ModInstrument *pIns = sndFile.Instruments[m_nInstrument];
-			if((!pIns) || (!pIns->Keyboard[note - NOTE_MIN] && !pIns->nMixPlug))
+			if((!pIns) || (!pIns->Keyboard[(note - NOTE_MIN) / 100] && !pIns->nMixPlug))
 				return;
 			{
 				if(pMainFrm->GetModPlaying() != pModDoc)
@@ -2330,7 +2330,7 @@ LRESULT CViewInstrument::OnCustomKeyMsg(WPARAM wParam, LPARAM)
 	}
 	if(wParam >= kcInstrumentStartNotes && wParam <= kcInstrumentEndNotes)
 	{
-		PlayNote(static_cast<ModCommand::NOTE>(wParam - kcInstrumentStartNotes + 1 + pMainFrm->GetBaseOctave() * 12));
+		PlayNote(static_cast<ModCommand::NOTE>(1 + 100 * (wParam - kcInstrumentStartNotes + pMainFrm->GetBaseOctave() * 12)));
 		return wParam;
 	}
 	if(wParam >= kcInstrumentStartNoteStops && wParam <= kcInstrumentEndNoteStops)

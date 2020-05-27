@@ -4306,22 +4306,22 @@ LRESULT CViewPattern::OnCustomKeyMsg(WPARAM wParam, LPARAM lParam)
 	if(wParam >= kcVPStartNotes && wParam <= kcVPEndNotes)
 	{
 		if(enterNote)
-			TempEnterNote(static_cast<ModCommand::NOTE>(wParam - kcVPStartNotes + 1 + pMainFrm->GetBaseOctave() * 12));
+			TempEnterNote(static_cast<ModCommand::NOTE>(1 + 100 * (wParam - kcVPStartNotes + pMainFrm->GetBaseOctave() * 12)));
 		return wParam;
 	} else if(wParam >= kcVPStartChords && wParam <= kcVPEndChords)
 	{
 		if(enterNote)
-			TempEnterChord(static_cast<ModCommand::NOTE>(wParam - kcVPStartChords + 1 + pMainFrm->GetBaseOctave() * 12));
+			TempEnterChord(static_cast<ModCommand::NOTE>(1 + 100 * (wParam - kcVPStartChords + pMainFrm->GetBaseOctave() * 12)));
 		return wParam;
 	}
 
 	if(wParam >= kcVPStartNoteStops && wParam <= kcVPEndNoteStops)
 	{
-		TempStopNote(static_cast<ModCommand::NOTE>(wParam - kcVPStartNoteStops + 1 + pMainFrm->GetBaseOctave() * 12));
+		TempStopNote(static_cast<ModCommand::NOTE>(1 + 100 * (wParam - kcVPStartNoteStops + pMainFrm->GetBaseOctave() * 12)));
 		return wParam;
 	} else if(wParam >= kcVPStartChordStops && wParam <= kcVPEndChordStops)
 	{
-		TempStopChord(static_cast<ModCommand::NOTE>(wParam - kcVPStartChordStops + 1 + pMainFrm->GetBaseOctave() * 12));
+		TempStopChord(static_cast<ModCommand::NOTE>(1 + 100 * (wParam - kcVPStartChordStops + pMainFrm->GetBaseOctave() * 12)));
 		return wParam;
 	}
 

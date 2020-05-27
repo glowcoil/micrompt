@@ -313,7 +313,7 @@ uint32 CSoundFile::MapMidiInstrument(uint8 program, uint16 bank, uint8 midiChann
 		pIns->nMidiDrumKey = note;
 		for(auto &key : pIns->NoteMap)
 		{
-			key = NOTE_MIDDLEC;
+			key = (uint8)NOTE_MIDDLEC;
 		}
 	}
 	pIns->VolEnv.dwFlags.set(ENV_ENABLED);

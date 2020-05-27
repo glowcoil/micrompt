@@ -786,7 +786,7 @@ void CModDoc::ProcessMIDI(uint32 midiData, INSTRUMENTINDEX ins, IMixPlugin *plug
 	const uint8 channel = MIDIEvents::GetChannelFromEvent(midiData);
 	const uint8 midiByte1 = MIDIEvents::GetDataByte1FromEvent(midiData);
 	const uint8 midiByte2 = MIDIEvents::GetDataByte2FromEvent(midiData);
-	uint8 note  = midiByte1 + NOTE_MIN;
+	ModCommand::NOTE note  = midiByte1 + NOTE_MIN;
 	int vol = midiByte2;
 
 	if((event == MIDIEvents::evNoteOn) && !vol)
@@ -908,7 +908,7 @@ CHANNELINDEX CModDoc::PlayNote(PlayNoteParam &params, NoteToChannelMap *noteChan
 
 		// reset channel properties; in theory the chan is completely unused anyway.
 		chn.Reset(ModChannel::resetTotal, m_SndFile, CHANNELINDEX_INVALID);
-		chn.nNewNote = chn.nLastNote = static_cast<uint8>(note);
+		chn.nNewNote = chn.nLastNote = note;
 		chn.nVolume = 256;
 
 		if(params.m_instr)
@@ -987,7 +987,7 @@ CHANNELINDEX CModDoc::PlayNote(PlayNoteParam &params, NoteToChannelMap *noteChan
 					IMixPlugin *pPlugin = m_SndFile.m_MixPlugins[nPlugin - 1].pMixPlugin;
 					if(pPlugin != nullptr)
 					{
-						pPlugin->MidiCommand(*pIns, pIns->NoteMap[note - NOTE_MIN], static_cast<uint16>(chn.nVolume), channel);
+						pPlugin->MidiCommand(*pIns, pIns->NoteMap[(note - NOTE_MIN) / 100], static_cast<uint16>(chn.nVolume), channel);
 					}
 				}
 			}
@@ -1046,7 +1046,7 @@ bool CModDoc::NoteOff(UINT note, bool fade, INSTRUMENTINDEX ins, CHANNELINDEX cu
 				IMixPlugin *pPlugin =  m_SndFile.m_MixPlugins[plug - 1].pMixPlugin;
 				if(pPlugin)
 				{
-					pPlugin->MidiCommand(*pIns, pIns->NoteMap[note - NOTE_MIN] + NOTE_KEYOFF, 0, currentChn);
+					pPlugin->MidiCommand(*pIns, pIns->NoteMap[(note - NOTE_MIN) / 100] + NOTE_KEYOFF, 0, currentChn);
 				}
 			}
 		}
@@ -1083,7 +1083,7 @@ bool CModDoc::NoteOff(UINT note, bool fade, INSTRUMENTINDEX ins, CHANNELINDEX cu
 
 
 // Apply DNA/NNA settings for note preview. It will also set the specified note to be playing in the playingNotes set.
-void CModDoc::CheckNNA(ModCommand::NOTE note, INSTRUMENTINDEX ins, std::bitset<128> &playingNotes)
+void CModDoc::CheckNNA(ModCommand::NOTE note, INSTRUMENTINDEX ins, std::bitset<16384> &playingNotes)
 {
 	if(ins > GetNumInstruments() || m_SndFile.Instruments[ins] == nullptr || note >= playingNotes.size())
 	{
@@ -1424,7 +1424,7 @@ INSTRUMENTINDEX CModDoc::FindSampleParent(SAMPLEINDEX sample) const
 		const ModInstrument *pIns = m_SndFile.Instruments[i];
 		if(pIns != nullptr)
 		{
-			for(size_t j = 0; j < NOTE_MAX; j++)
+			for(size_t j = 0; j < NOTE_MAX / 100; j++)
 			{
 				if(pIns->Keyboard[j] == sample)
 				{
@@ -2811,7 +2811,7 @@ CString CModDoc::GetPatternViewInstrumentName(INSTRUMENTINDEX nInstr,
 	// If instrument name is empty, use name of the sample mapped to C-5.
 	if (instrumentName.IsEmpty())
 	{
-		const SAMPLEINDEX nSmp = m_SndFile.Instruments[nInstr]->Keyboard[NOTE_MIDDLEC - 1];
+		const SAMPLEINDEX nSmp = m_SndFile.Instruments[nInstr]->Keyboard[(NOTE_MIDDLEC - 1) / 100];
 		if (nSmp <= m_SndFile.GetNumSamples() && m_SndFile.GetSample(nSmp).HasSampleData())
 			instrumentName = _T("s: ") + mpt::ToCString(m_SndFile.GetCharsetInternal(), m_SndFile.GetSampleName(nSmp));
 	}

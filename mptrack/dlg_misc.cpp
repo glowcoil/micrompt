@@ -1090,7 +1090,7 @@ BOOL CSampleMapDlg::OnInitDialog()
 	ModInstrument *pIns = sndFile.Instruments[m_nInstrument];
 	if(pIns)
 	{
-		for(UINT i = 0; i < NOTE_MAX; i++)
+		for(UINT i = 0; i < NOTE_MAX / 100; i++)
 		{
 			KeyboardMap[i] = pIns->Keyboard[i];
 		}
@@ -1248,7 +1248,7 @@ void CSampleMapDlg::OnOK()
 	if(pIns)
 	{
 		bool modified = false;
-		for(UINT i = 0; i < NOTE_MAX; i++)
+		for(UINT i = 0; i < NOTE_MAX / 100; i++)
 		{
 			if(KeyboardMap[i] != pIns->Keyboard[i])
 			{

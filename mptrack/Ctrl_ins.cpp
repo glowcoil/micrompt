@@ -151,7 +151,7 @@ void CNoteMapWnd::SetCurrentInstrument(INSTRUMENTINDEX nIns)
 
 void CNoteMapWnd::SetCurrentNote(UINT nNote)
 {
-	if(nNote != m_nNote && ModCommand::IsNote(static_cast<ModCommand::NOTE>(nNote + NOTE_MIN)))
+	if(nNote != m_nNote && ModCommand::IsNote(static_cast<ModCommand::NOTE>(nNote * 100 + NOTE_MIN)))
 	{
 		m_nNote = nNote;
 		Invalidate(FALSE);
@@ -194,11 +194,11 @@ void CNoteMapWnd::OnPaint()
 		for (int ynote=0; ynote<nNotes; ynote++, ypaint+=m_cyFont, nPos++)
 		{
 			// Note
-			bool isValidPos = (nPos >= 0) && (nPos < NOTE_MAX - NOTE_MIN + 1);
+			bool isValidPos = (nPos >= 0) && (nPos < (NOTE_MAX - NOTE_MIN) / 100 + 1);
 			if (isValidPos)
 			{
-				s = mpt::ToWin(sndFile.GetNoteName(static_cast<ModCommand::NOTE>(nPos + 1), m_nInstrument));
-				s.resize(4);
+				s = mpt::ToWin(sndFile.GetNoteName(static_cast<ModCommand::NOTE>(nPos * 100 + 1), m_nInstrument));
+				s.resize(6);
 			} else
 			{
 				s.clear();
@@ -216,7 +216,7 @@ void CNoteMapWnd::OnPaint()
 				if(ModCommand::IsNote(n))
 				{
 					s = mpt::ToWin(sndFile.GetNoteName(n, m_nInstrument));
-					s.resize(4);
+					s.resize(6);
 				} else
 				{
 					s = _T("???");
@@ -345,9 +345,10 @@ void CNoteMapWnd::OnRButtonDown(UINT, CPoint pt)
 
 			if(sndFile.GetType() != MOD_TYPE_XM)
 			{
-				if(ModCommand::IsNote(pIns->NoteMap[m_nNote]))
+				ModCommand::NOTE mappedNote = pIns->GetMappedNote(m_nNote * 100 + 1);
+				if(ModCommand::IsNote(mappedNote))
 				{
-					AppendMenu(hMenu, MF_STRING, ID_NOTEMAP_COPY_NOTE, ih->GetKeyTextFromCommand(kcInsNoteMapCopyCurrentNote, mpt::cformat(_T("Map all &notes to %1"))(mpt::ToCString(sndFile.GetNoteName(pIns->NoteMap[m_nNote], m_nInstrument)))));
+					AppendMenu(hMenu, MF_STRING, ID_NOTEMAP_COPY_NOTE, ih->GetKeyTextFromCommand(kcInsNoteMapCopyCurrentNote, mpt::cformat(_T("Map all &notes to %1"))(mpt::ToCString(sndFile.GetNoteName(mappedNote, m_nInstrument)))));
 				}
 				AppendMenu(hMenu, MF_STRING, ID_NOTEMAP_TRANS_UP, ih->GetKeyTextFromCommand(kcInsNoteMapTransposeUp, _T("Transpose map &up")));
 				AppendMenu(hMenu, MF_STRING, ID_NOTEMAP_TRANS_DOWN, ih->GetKeyTextFromCommand(kcInsNoteMapTransposeDown, _T("Transpose map &down")));
@@ -437,7 +438,7 @@ void CNoteMapWnd::OnMapReset()
 			{
 				PrepareUndo("Reset Note Map");
 			}
-			pIns->NoteMap[i] = static_cast<ModCommand::NOTE>(i + 1);
+			pIns->NoteMap[i] = static_cast<uint8>(i + 1);
 			modified = true;
 		}
 		if(modified)
@@ -503,12 +504,12 @@ void CNoteMapWnd::MapTranspose(int nAmount)
 	if (pIns)
 	{
 		bool modified = false;
-		for(NOTEINDEXTYPE i = 0; i < NOTE_MAX; i++)
+		for(NOTEINDEXTYPE i = 0; i < NOTE_MAX / 100; i++)
 		{
 			int n = pIns->NoteMap[i];
-			if ((n > NOTE_MIN && nAmount < 0) || (n < NOTE_MAX && nAmount > 0))
+			if ((n > NOTE_MIN && nAmount < 0) || (n < NOTE_MAX / 100 && nAmount > 0))
 			{
-				n = Clamp(n + nAmount, NOTE_MIN, NOTE_MAX);
+				n = Clamp(n + nAmount, (int)NOTE_MIN, NOTE_MAX / 100);
 				if(n != pIns->NoteMap[i])
 				{
 					if(!modified)
@@ -606,7 +607,7 @@ void CNoteMapWnd::EnterNote(UINT note)
 {
 	CSoundFile &sndFile = m_modDoc.GetSoundFile();
 	ModInstrument *pIns = sndFile.Instruments[m_nInstrument];
-	if ((pIns) && (m_nNote < NOTE_MAX))
+	if ((pIns) && (m_nNote < NOTE_MAX / 100))
 	{
 		if (!m_bIns && (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)))
 		{
@@ -620,7 +621,7 @@ void CNoteMapWnd::EnterNote(UINT note)
 			if (n != pIns->NoteMap[m_nNote])
 			{
 				StopNote(); // Stop old note according to current instrument settings
-				pIns->NoteMap[m_nNote] = static_cast<ModCommand::NOTE>(n);
+				pIns->NoteMap[m_nNote] = static_cast<uint8>(n);
 				m_pParent.SetModified(InstrumentHint().Info(), false);
 				Invalidate(FALSE);
 				UpdateAccessibleTitle();
@@ -637,7 +638,7 @@ bool CNoteMapWnd::HandleChar(WPARAM c)
 {
 	CSoundFile &sndFile = m_modDoc.GetSoundFile();
 	ModInstrument *pIns = sndFile.Instruments[m_nInstrument];
-	if ((pIns) && (m_nNote < NOTE_MAX))
+	if ((pIns) && (m_nNote < NOTE_MAX / 100))
 	{
 
 		if ((m_bIns) && (((c >= '0') && (c <= '9')) || (c == ' ')))	//in sample # column
@@ -698,7 +699,7 @@ bool CNoteMapWnd::HandleChar(WPARAM c)
 				}
 
 				StopNote(); // Stop old note according to current instrument settings
-				pIns->NoteMap[m_nNote] = static_cast<ModCommand::NOTE>(n);
+				pIns->NoteMap[m_nNote] = static_cast<uint8>(n);
 				m_pParent.SetModified(InstrumentHint().Info(), false);
 				Invalidate(FALSE);
 				UpdateAccessibleTitle();
@@ -762,7 +763,7 @@ bool CNoteMapWnd::HandleNav(WPARAM k)
 			if(pIns)
 			{
 				if (m_bIns)
-					m_nOldIns = pIns->Keyboard[m_nNote];
+					m_nOldIns = pIns->Keyboard[m_nNote / 100];
 				else
 					m_nOldNote = pIns->NoteMap[m_nNote];
 			}
@@ -790,7 +791,7 @@ void CNoteMapWnd::PlayNote(UINT note)
 		// No polyphony in notemap window
 		StopNote();
 	}
-	m_nPlayingNote = static_cast<ModCommand::NOTE>(note + NOTE_MIN);
+	m_nPlayingNote = static_cast<ModCommand::NOTE>(note * 100 + NOTE_MIN);
 	m_noteChannel = m_modDoc.PlayNote(PlayNoteParam(m_nPlayingNote).Instrument(m_nInstrument));
 }
 
@@ -819,7 +820,7 @@ HRESULT CNoteMapWnd::get_accName(VARIANT varChild, BSTR *pszName)
 
 	const auto &sndFile = m_modDoc.GetSoundFile();
 	CString str = mpt::ToCString(sndFile.GetNoteName(static_cast<ModCommand::NOTE>(m_nNote + NOTE_MIN), m_nInstrument)) + _T(": ");
-	if(ins->Keyboard[m_nNote] == 0)
+	if(ins->Keyboard[m_nNote / 100] == 0)
 	{
 		str += _T("no sample");
 	} else

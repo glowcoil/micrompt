@@ -525,17 +525,15 @@ bool CModDoc::ConvertInstrumentsToSamples()
 		{
 			ModCommand::INSTR instr = m.instr, newinstr = 0;
 			ModCommand::NOTE note = m.note, newnote = note;
-			if(ModCommand::IsNote(note))
-				note = note - NOTE_MIN;
-			else
-				note = NOTE_MIDDLEC - NOTE_MIN;
+			if(!ModCommand::IsNote(note))
+				note = NOTE_MIDDLEC;
 
 			if((instr < MAX_INSTRUMENTS) && (m_SndFile.Instruments[instr]))
 			{
 				const ModInstrument *pIns = m_SndFile.Instruments[instr];
-				newinstr = static_cast<ModCommand::INSTR>(pIns->Keyboard[note]);
-				newnote = pIns->NoteMap[note];
-				if(pIns->Keyboard[note] > Util::MaxValueOfType(m.instr))
+				newinstr = static_cast<ModCommand::INSTR>(pIns->Keyboard[(note - NOTE_MIN) / 100]);
+				newnote = pIns->GetMappedNote(note);
+				if(pIns->Keyboard[(note - NOTE_MIN) / 100] > Util::MaxValueOfType(m.instr))
 					newinstr = 0;
 			}
 			m.instr = newinstr;
@@ -1330,7 +1328,7 @@ SAMPLEINDEX CModDoc::GetSampleIndex(const ModCommand &m, ModCommand::INSTR lastI
 	if(m_SndFile.GetNumInstruments())
 	{
 		if(m.IsNote() && instr <= m_SndFile.GetNumInstruments() && m_SndFile.Instruments[instr] != nullptr)
-			smp = m_SndFile.Instruments[instr]->Keyboard[m.note - NOTE_MIN];
+			smp = m_SndFile.Instruments[instr]->Keyboard[(m.note - NOTE_MIN) / 100];
 	} else
 	{
 		smp = instr;
