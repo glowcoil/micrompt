@@ -1843,7 +1843,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 	if ((!bPorta) || (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT)))
 		chn.nNewIns = 0;
 
-	uint32 period = GetPeriodFromNote(note, chn.nFineTune, chn.nC5Speed);
+	uint32 period = GetPeriodFromNote(note, chn.rowCommand.offset, chn.nFineTune, chn.nC5Speed);
 	chn.nPanbrelloOffset = 0;
 
 	// IT compatibility: Sample and instrument panning is only applied on note change, not instrument change
@@ -4066,7 +4066,7 @@ void CSoundFile::NoteSlide(ModChannel &chn, uint32 param, bool slideUp, bool ret
 			if(chn.HasCustomTuning())
 				chn.m_PortamentoFineSteps += delta * chn.pModInstrument->pTuning->GetFineStepCount();
 			else
-				chn.nPeriod = GetPeriodFromNote(delta + GetNoteFromPeriod(chn.nPeriod), 8363, 0);
+				chn.nPeriod = GetPeriodFromNote(delta + GetNoteFromPeriod(chn.nPeriod), 0, 8363, 0);
 
 			if(retrig)
 			{
@@ -4572,7 +4572,7 @@ void CSoundFile::ExtendedMODCommands(CHANNELINDEX nChn, ModCommand::PARAM param)
 				if(GetType() & (MOD_TYPE_MOD | MOD_TYPE_DIGI | MOD_TYPE_AMF0 | MOD_TYPE_MED))
 				{
 					chn.nFineTune = MOD2XMFineTune(param);
-					if(chn.nPeriod && chn.rowCommand.IsNote()) chn.nPeriod = GetPeriodFromNote(chn.nNote, chn.nFineTune, chn.nC5Speed);
+					if(chn.nPeriod && chn.rowCommand.IsNote()) chn.nPeriod = GetPeriodFromNote(chn.nNote, 0, chn.nFineTune, chn.nC5Speed);
 				} else if(GetType() == MOD_TYPE_MTM)
 				{
 					if(chn.rowCommand.IsNote() && chn.pModSample != nullptr)
@@ -4580,12 +4580,12 @@ void CSoundFile::ExtendedMODCommands(CHANNELINDEX nChn, ModCommand::PARAM param)
 						// Effect is permanent in MultiTracker
 						const_cast<ModSample *>(chn.pModSample)->nFineTune = param;
 						chn.nFineTune = param;
-						if(chn.nPeriod) chn.nPeriod = GetPeriodFromNote(chn.nNote, chn.nFineTune, chn.nC5Speed);
+						if(chn.nPeriod) chn.nPeriod = GetPeriodFromNote(chn.nNote, 0, chn.nFineTune, chn.nC5Speed);
 					}
 				} else if(chn.rowCommand.IsNote())
 				{
 					chn.nFineTune = MOD2XMFineTune(param - 8);
-					if(chn.nPeriod) chn.nPeriod = GetPeriodFromNote(chn.nNote, chn.nFineTune, chn.nC5Speed);
+					if(chn.nPeriod) chn.nPeriod = GetPeriodFromNote(chn.nNote, 0, chn.nFineTune, chn.nC5Speed);
 				}
 				break;
 	// E6x: Pattern Loop
@@ -4640,7 +4640,7 @@ void CSoundFile::ExtendedS3MCommands(CHANNELINDEX nChn, ModCommand::PARAM param)
 					chn.nC5Speed = S3MFineTuneTable[param];
 					chn.nFineTune = MOD2XMFineTune(param);
 					if(chn.nPeriod)
-						chn.nPeriod = GetPeriodFromNote(chn.nNote, chn.nFineTune, chn.nC5Speed);
+						chn.nPeriod = GetPeriodFromNote(chn.nNote, 0, chn.nFineTune, chn.nC5Speed);
 				} else if(chn.pModSample != nullptr)
 				{
 					chn.nC5Speed = chn.pModSample->nC5Speed + param * 80;
@@ -5893,7 +5893,7 @@ uint32 CSoundFile::GetNoteFromPeriod(uint32 period, int32 nFineTune, uint32 nC5S
 	while(count > 0)
 	{
 		const uint32 step = count / 2, midNote = minNote + step;
-		uint32 n = GetPeriodFromNote(midNote, nFineTune, nC5Speed);
+		uint32 n = GetPeriodFromNote(midNote, 0, nFineTune, nC5Speed);
 		if((n > period && !periodIsFreq) || (n < period && periodIsFreq) || !n)
 		{
 			minNote = midNote + 1;
@@ -5907,7 +5907,7 @@ uint32 CSoundFile::GetNoteFromPeriod(uint32 period, int32 nFineTune, uint32 nC5S
 }
 
 
-uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 nFineTune, uint32 nC5Speed) const
+uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 offset, int32 nFineTune, uint32 nC5Speed) const
 {
 	if (note == NOTE_NONE || (note >= NOTE_MIN_SPECIAL)) return 0;
 	note -= NOTE_MIN;
@@ -5922,7 +5922,8 @@ uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 nFineTune, uint32 nC5Spe
 		{
 			// In IT linear slide mode, directly use frequency in Hertz rather than periods.
 			if(m_playBehaviour[kHertzInLinearMode] || GetType() == MOD_TYPE_669)
-				return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
+				//return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
+				return (uint32)round((float)nC5Speed * powf(2.0, ((float)note / 12.0f + (float)offset / 1200.0f) - 5.0f));
 			else
 				return (FreqS3MTable[note % 12u] << 5) >> (note / 12);
 		} else

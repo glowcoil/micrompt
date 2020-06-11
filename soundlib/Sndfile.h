@@ -1129,7 +1129,7 @@ public:
 
 	// Period/Note functions
 	uint32 GetNoteFromPeriod(uint32 period, int32 nFineTune = 0, uint32 nC5Speed = 0) const;
-	uint32 GetPeriodFromNote(uint32 note, int32 nFineTune, uint32 nC5Speed) const;
+	uint32 GetPeriodFromNote(uint32 note, int32 offset, int32 nFineTune, uint32 nC5Speed) const;
 	uint32 GetFreqFromPeriod(uint32 period, uint32 c5speed, int32 nPeriodFrac = 0) const;
 	// Misc functions
 	ModSample &GetSample(SAMPLEINDEX sample) { MPT_ASSERT(sample <= m_nSamples && sample < CountOf(Samples)); return Samples[sample]; }

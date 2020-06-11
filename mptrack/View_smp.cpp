@@ -2489,7 +2489,7 @@ void CViewSample::PlayNote(ModCommand::NOTE note, const SmpLength nStartPos, int
 
 			m_dwStatus.set(SMPSTATUS_KEYDOWN);
 
-			uint32 freq = sndFile.GetFreqFromPeriod(sndFile.GetPeriodFromNote(note + (sndFile.GetType() == MOD_TYPE_XM ? sample.RelativeTone : 0), sample.nFineTune, sample.nC5Speed), sample.nC5Speed, 0);
+			uint32 freq = sndFile.GetFreqFromPeriod(sndFile.GetPeriodFromNote(note + (sndFile.GetType() == MOD_TYPE_XM ? sample.RelativeTone : 0), 0, sample.nFineTune, sample.nC5Speed), sample.nC5Speed, 0);
 
 			pMainFrm->SetInfoText(mpt::cformat(_T("%1 (%2.%3 Hz)"))(
 				mpt::ToCString(sndFile.GetNoteName((ModCommand::NOTE)note)),

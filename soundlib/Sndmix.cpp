@@ -683,7 +683,7 @@ bool CSoundFile::ProcessRow()
 			{
 				// In ST3, a portamento immediately following an arpeggio continues where the arpeggio left off.
 				// Test case: PortaAfterArp.s3m
-				pChn->nPeriod = GetPeriodFromNote(pChn->nArpeggioLastNote, pChn->nFineTune, pChn->nC5Speed);
+				pChn->nPeriod = GetPeriodFromNote(pChn->nArpeggioLastNote, 0, pChn->nFineTune, pChn->nC5Speed);
 			}
 
 			if(m_playBehaviour[kMODOutOfRangeNoteDelay]
@@ -695,7 +695,7 @@ bool CSoundFile::ProcessRow()
 				// In ProTracker, a note triggered by an out-of-range note delay can be heard on the next row
 				// if there is no new note on that row.
 				// Test case: NoteDelay-NextRow.mod
-				pChn->nPeriod = GetPeriodFromNote(pChn->rowCommand.note, pChn->nFineTune, 0);
+				pChn->nPeriod = GetPeriodFromNote(pChn->rowCommand.note, pChn->rowCommand.offset, pChn->nFineTune, 0);
 			}
 			if(m_playBehaviour[kMODTempoOnSecondTick] && !m_playBehaviour[kMODVBlankTiming] && m_PlayState.m_nMusicSpeed == 1 && pChn->rowCommand.command == CMD_TEMPO)
 			{
@@ -1458,7 +1458,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEIND
 			if(GetType() == MOD_TYPE_MT2 && m_SongFlags[SONG_FIRSTTICK])
 			{
 				// MT2 resets any previous portamento when an arpeggio occurs.
-				chn.nPeriod = period = GetPeriodFromNote(chn.nNote, chn.nFineTune, chn.nC5Speed);
+				chn.nPeriod = period = GetPeriodFromNote(chn.nNote, 0, chn.nFineTune, chn.nC5Speed);
 			}
 
 			if(m_playBehaviour[kITArpeggio])
@@ -1503,13 +1503,13 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEIND
 					case 2: note += (chn.nArpeggio & 0x0F); break;
 					}
 
-					period = GetPeriodFromNote(note, chn.nFineTune, chn.nC5Speed);
+					period = GetPeriodFromNote(note, 0, chn.nFineTune, chn.nC5Speed);
 
 					// FT2 compatibility: FT2 has a different note limit for Arpeggio.
 					// Test case: ArpeggioClamp.xm
 					if(note >= 108 + NOTE_MIN && arpPos != 0)
 					{
-						period = std::max(static_cast<uint32>(period), GetPeriodFromNote(108 + NOTE_MIN, 0, chn.nC5Speed));
+						period = std::max(static_cast<uint32>(period), GetPeriodFromNote(108 + NOTE_MIN, 0, 0, chn.nC5Speed));
 					}
 
 				}
@@ -1543,7 +1543,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEIND
 							note -= 37;
 						}
 					}
-					period = GetPeriodFromNote(note, chn.nFineTune, chn.nC5Speed);
+					period = GetPeriodFromNote(note, 0, chn.nFineTune, chn.nC5Speed);
 
 					if(GetType() & (MOD_TYPE_DBM | MOD_TYPE_DIGI | MOD_TYPE_PSM | MOD_TYPE_STM))
 					{
@@ -2155,7 +2155,7 @@ bool CSoundFile::ReadNote()
 				{
 					// Only recompute this whole thing in case the base period has changed.
 					chn.cachedPeriod = period;
-					chn.glissandoPeriod = GetPeriodFromNote(GetNoteFromPeriod(period, chn.nFineTune, chn.nC5Speed), chn.nFineTune, chn.nC5Speed);
+					chn.glissandoPeriod = GetPeriodFromNote(GetNoteFromPeriod(period, chn.nFineTune, chn.nC5Speed), 0, chn.nFineTune, chn.nC5Speed);
 				}
 				period = chn.glissandoPeriod;
 			}
