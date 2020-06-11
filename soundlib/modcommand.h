@@ -124,6 +124,7 @@ class ModCommand
 {
 public:
 	typedef uint8 NOTE;
+	typedef int8 OFFSET;
 	typedef uint8 INSTR;
 	typedef uint8 VOL;
 	typedef uint8 VOLCMD;
@@ -140,6 +141,7 @@ public:
 	bool operator==(const ModCommand& mc) const
 	{
 		return (note == mc.note)
+			&& (offset == mc.offset)
 			&& (instr == mc.instr)
 			&& (volcmd == mc.volcmd)
 			&& (command == mc.command)
@@ -216,6 +218,7 @@ public:
 
 public:
 	uint8 note = NOTE_NONE;
+	int8 offset = 0;
 	uint8 instr = 0;
 	uint8 volcmd = VOLCMD_NONE;
 	uint8 command = CMD_NONE;
