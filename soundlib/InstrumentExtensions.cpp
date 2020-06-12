@@ -395,7 +395,7 @@ void CSoundFile::SaveExtendedInstrumentProperties(INSTRUMENTINDEX numInstruments
 		}
 	}
 
-	if(GetType() & MOD_TYPE_MPT)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		uint32 maxNodes[3] = { 0, 0, 0 };
 		bool hasReleaseNode[3] = { false, false, false };

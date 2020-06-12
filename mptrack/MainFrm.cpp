@@ -1618,7 +1618,7 @@ void CMainFrame::InitPreview()
 	m_WaveFile.Create(FileReader());
 	m_WaveFile.m_nDefaultTempo.Set(125);
 	m_WaveFile.m_nDefaultSpeed = 6;
-	m_WaveFile.m_nType = MOD_TYPE_MPT;
+	m_WaveFile.m_nType = MOD_TYPE_UPT;
 	m_WaveFile.m_nChannels = 2;
 	m_WaveFile.m_nInstruments = 1;
 	m_WaveFile.m_nTempoMode = tempoModeClassic;

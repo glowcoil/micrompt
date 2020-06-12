@@ -151,13 +151,13 @@ void ModCommand::Convert(MODTYPE fromType, MODTYPE toType, const CSoundFile &snd
 	// helper variables
 	const bool oldTypeIsMOD = (fromType == MOD_TYPE_MOD), oldTypeIsXM = (fromType == MOD_TYPE_XM),
 		oldTypeIsS3M = (fromType == MOD_TYPE_S3M), oldTypeIsIT = (fromType == MOD_TYPE_IT),
-		oldTypeIsMPT = (fromType == MOD_TYPE_MPT), oldTypeIsMOD_XM = (oldTypeIsMOD || oldTypeIsXM),
+		oldTypeIsMPT = (fromType & (MOD_TYPE_MPT | MOD_TYPE_UPT)), oldTypeIsMOD_XM = (oldTypeIsMOD || oldTypeIsXM),
 		oldTypeIsS3M_IT_MPT = (oldTypeIsS3M || oldTypeIsIT || oldTypeIsMPT),
 		oldTypeIsIT_MPT = (oldTypeIsIT || oldTypeIsMPT);
 
 	const bool newTypeIsMOD = (toType == MOD_TYPE_MOD), newTypeIsXM =  (toType == MOD_TYPE_XM),
 		newTypeIsS3M = (toType == MOD_TYPE_S3M), newTypeIsIT = (toType == MOD_TYPE_IT),
-		newTypeIsMPT = (toType == MOD_TYPE_MPT), newTypeIsMOD_XM = (newTypeIsMOD || newTypeIsXM),
+		newTypeIsMPT = (toType & (MOD_TYPE_MPT | MOD_TYPE_UPT)), newTypeIsMOD_XM = (newTypeIsMOD || newTypeIsXM),
 		newTypeIsS3M_IT_MPT = (newTypeIsS3M || newTypeIsIT || newTypeIsMPT),
 		newTypeIsIT_MPT = (newTypeIsIT || newTypeIsMPT);
 
@@ -175,7 +175,7 @@ void ModCommand::Convert(MODTYPE fromType, MODTYPE toType, const CSoundFile &snd
 			if(param == 0xA4)
 			{
 				// surround remap
-				command = static_cast<COMMAND>((toType & (MOD_TYPE_IT | MOD_TYPE_MPT)) ? CMD_S3MCMDEX : CMD_XFINEPORTAUPDOWN);
+				command = static_cast<COMMAND>((toType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? CMD_S3MCMDEX : CMD_XFINEPORTAUPDOWN);
 				param = 0x91;
 			} else
 			{

@@ -608,7 +608,7 @@ void CNoteMapWnd::EnterNote(UINT note)
 	ModInstrument *pIns = sndFile.Instruments[m_nInstrument];
 	if ((pIns) && (m_nNote < NOTE_MAX))
 	{
-		if (!m_bIns && (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)))
+		if (!m_bIns && (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)))
 		{
 			UINT n = pIns->NoteMap[m_nNote];
 			bool ok = false;
@@ -674,7 +674,7 @@ bool CNoteMapWnd::HandleChar(WPARAM c)
 			return true;
 		}
 
-		else if ((!m_bIns) && (sndFile.m_nType & (MOD_TYPE_IT | MOD_TYPE_MPT)))	//in note column
+		else if ((!m_bIns) && (sndFile.m_nType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))	//in note column
 		{
 			uint32 n = pIns->NoteMap[m_nNote];
 
@@ -1298,9 +1298,9 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 		m_EditName.SetLimitText(specs.instrNameLengthMax);
 		m_EditFileName.SetLimitText(specs.instrFilenameLengthMax);
 
-		const BOOL bITandMPT = ((m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
-		const BOOL bITandXM = ((m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM))  && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
-		const BOOL bMPTOnly = ((m_sndFile.GetType() == MOD_TYPE_MPT) && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
+		const BOOL bITandMPT = ((m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
+		const BOOL bITandXM = ((m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM)) && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
+		const BOOL bMPTOnly = ((m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) && (m_sndFile.GetNumInstruments())) ? TRUE : FALSE;
 		::EnableWindow(::GetDlgItem(m_hWnd, IDC_EDIT10), bITandXM);
 		::EnableWindow(::GetDlgItem(m_hWnd, IDC_EDIT11), bITandXM);
 		::EnableWindow(::GetDlgItem(m_hWnd, IDC_EDIT7), bITandXM);
@@ -1378,12 +1378,12 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 		m_SpinInstrument.EnableWindow((m_sndFile.m_nInstruments) ? TRUE : FALSE);
 
 		// Backwards compatibility with legacy IT/XM modules that use now deprecated hack features.
-		m_SliderCutSwing.EnableWindow(pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->nCutSwing != 0));
-		m_SliderResSwing.EnableWindow(pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->nResSwing != 0));
-		m_CbnFilterMode.EnableWindow (pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->filterMode != FilterMode::Unchanged));
-		m_CbnResampling.EnableWindow (pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->resampling != SRCMODE_DEFAULT));
-		m_SliderAttack.EnableWindow  (pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->nVolRampUp));
-		::EnableWindow(::GetDlgItem(m_hWnd, IDC_EDIT2), pIns != nullptr && (m_sndFile.GetType() == MOD_TYPE_MPT || pIns->nVolRampUp));
+		m_SliderCutSwing.EnableWindow(pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->nCutSwing != 0));
+		m_SliderResSwing.EnableWindow(pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->nResSwing != 0));
+		m_CbnFilterMode.EnableWindow (pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->filterMode != FilterMode::Unchanged));
+		m_CbnResampling.EnableWindow (pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->resampling != SRCMODE_DEFAULT));
+		m_SliderAttack.EnableWindow  (pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->nVolRampUp));
+		::EnableWindow(::GetDlgItem(m_hWnd, IDC_EDIT2), pIns != nullptr && (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->nVolRampUp));
 
 		if (pIns)
 		{
@@ -1456,7 +1456,7 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 			ASSERT((uint8)m_ComboPPC.GetItemData(m_ComboPPC.GetCurSel()) == pIns->nPPC + NOTE_MIN);
 			SetDlgItemInt(IDC_EDIT15, pIns->nPPS);
 			// Filter
-			if (m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+			if (m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 			{
 				m_CheckCutOff.SetCheck((pIns->IsCutoffEnabled()) ? TRUE : FALSE);
 				m_CheckResonance.SetCheck((pIns->IsResonanceEnabled()) ? TRUE : FALSE);
@@ -1477,7 +1477,7 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 			UpdateTuningComboBox();
 
 			// Only enable Pitch/Tempo Lock for MPTM files or legacy files that have this property enabled.
-			m_CheckPitchTempoLock.EnableWindow((m_sndFile.GetType() == MOD_TYPE_MPT || pIns->pitchToTempoLock.GetRaw() > 0) ? TRUE : FALSE);
+			m_CheckPitchTempoLock.EnableWindow((m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || pIns->pitchToTempoLock.GetRaw() > 0) ? TRUE : FALSE);
 			CheckDlgButton(IDC_CHECK_PITCHTEMPOLOCK, pIns->pitchToTempoLock.GetRaw() > 0 ? BST_CHECKED : BST_UNCHECKED);
 			m_EditPitchTempoLock.EnableWindow(pIns->pitchToTempoLock.GetRaw() > 0 ? TRUE : FALSE);
 			if(pIns->pitchToTempoLock.GetRaw() > 0)
@@ -1488,7 +1488,7 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 			// Pitch Wheel Depth
 			SetDlgItemInt(IDC_PITCHWHEELDEPTH, pIns->midiPWD, TRUE);
 
-			if(m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT))
+			if(m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 			{
 				BOOL enableVol = (m_CbnMixPlug.GetCurSel() > 0 && !m_sndFile.m_playBehaviour[kMIDICCBugEmulation]) ? TRUE : FALSE;
 				velocityStyle.EnableWindow(enableVol);
@@ -2222,7 +2222,7 @@ void CCtrlInstruments::OnSetPanningChanged()
 		PrepareUndo("Toggle Panning");
 		pIns->dwFlags.set(INS_SETPANNING, b);
 
-		if(b && m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))
+		if(b && m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 		{
 			bool smpPanningInUse = false;
 

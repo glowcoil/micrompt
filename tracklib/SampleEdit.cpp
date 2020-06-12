@@ -288,7 +288,7 @@ double RemoveDCOffset(ModSample &smp, SmpLength start, SmpLength end, CSoundFile
 		RemoveOffsetAndNormalize(smp.sample8() + start, end - start, offset, amplify);
 
 	// step 3: adjust global vol (if available)
-	if((sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && (start == 0) && (end == smp.nLength * smp.GetNumChannels()))
+	if((sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && (start == 0) && (end == smp.nLength * smp.GetNumChannels()))
 	{
 		CriticalSection cs;
 

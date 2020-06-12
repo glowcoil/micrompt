@@ -58,6 +58,7 @@ static char THIS_FILE[] = __FILE__;
 OPENMPT_NAMESPACE_BEGIN
 
 
+const TCHAR FileFilterUPT[] = _T("MicroPlug Modules (*.uptm)|*.uptm||");
 const TCHAR FileFilterMOD[]	= _T("ProTracker Modules (*.mod)|*.mod||");
 const TCHAR FileFilterXM[]	= _T("FastTracker Modules (*.xm)|*.xm||");
 const TCHAR FileFilterS3M[] = _T("ScreamTracker Modules (*.s3m)|*.s3m||");
@@ -70,6 +71,7 @@ const CString ModTypeToFilter(const CSoundFile& sndFile)
 	const MODTYPE modtype = sndFile.GetType();
 	switch(modtype)
 	{
+		case MOD_TYPE_UPT: return FileFilterUPT;
 		case MOD_TYPE_MOD: return FileFilterMOD;
 		case MOD_TYPE_XM: return FileFilterXM;
 		case MOD_TYPE_S3M: return FileFilterS3M;
@@ -227,6 +229,7 @@ BOOL CModDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	case MOD_TYPE_XM:
 	case MOD_TYPE_IT:
 	case MOD_TYPE_MPT:
+	case MOD_TYPE_UPT:
 		break;
 	default:
 		m_SndFile.ChangeModTypeTo(m_SndFile.GetBestSaveFormat());
@@ -303,6 +306,7 @@ bool CModDoc::OnSaveDocument(const mpt::PathString &filename, const bool setPath
 			case MOD_TYPE_XM:  ok = m_SndFile.SaveXM(f); break;
 			case MOD_TYPE_IT:  ok = m_SndFile.SaveIT(f, filename); break;
 			case MOD_TYPE_MPT: ok = m_SndFile.SaveIT(f, filename); break;
+			case MOD_TYPE_UPT: ok = m_SndFile.SaveIT(f, filename); break;
 			default:           MPT_ASSERT_NOTREACHED();
 			}
 		} catch(const std::exception &)
@@ -330,7 +334,7 @@ bool CModDoc::OnSaveDocument(const mpt::PathString &filename, const bool setPath
 
 BOOL CModDoc::SaveModified()
 {
-	if(m_SndFile.GetType() == MOD_TYPE_MPT && !SaveAllSamples())
+	if(m_SndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && !SaveAllSamples())
 		return FALSE;
 	return CDocument::SaveModified();
 }
@@ -429,6 +433,8 @@ BOOL CModDoc::DoSave(const mpt::PathString &filename, bool setPath)
 		MsgBoxHidable(ItCompatibilityExportTip);
 		break;
 	case MOD_TYPE_MPT:
+		break;
+	case MOD_TYPE_UPT:
 		break;
 	default:
 		ErrorBox(IDS_ERR_SAVESONG, CMainFrame::GetMainFrame());
@@ -544,7 +550,7 @@ BOOL CModDoc::InitializeMod()
 			break;
 		}
 
-		if(GetModType() == MOD_TYPE_MPT)
+		if(GetModType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 		{
 			m_SndFile.m_nTempoMode = tempoModeModern;
 			m_SndFile.m_SongFlags.set(SONG_EXFILTERRANGE);
@@ -597,7 +603,7 @@ BOOL CModDoc::InitializeMod()
 				InitializeInstrument(m_SndFile.Instruments[1]);
 			}
 		}
-		if (m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM))
+		if (m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM))
 		{
 			m_SndFile.m_SongFlags.set(SONG_LINEARSLIDES);
 		}
@@ -1128,7 +1134,7 @@ bool CModDoc::IsNotePlaying(UINT note, SAMPLEINDEX nsmp, INSTRUMENTINDEX nins)
 
 bool CModDoc::MuteToggleModifiesDocument() const
 {
-	return (m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_S3M)) && TrackerSettings::Instance().MiscSaveChannelMuteStatus;
+	return (m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_S3M)) && TrackerSettings::Instance().MiscSaveChannelMuteStatus;
 }
 
 
@@ -1315,12 +1321,12 @@ bool CModDoc::SurroundChannel(CHANNELINDEX nChn, bool surround)
 {
 	if(nChn >= m_SndFile.GetNumChannels()) return false;
 
-	if(!(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))) surround = false;
+	if(!(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) surround = false;
 
 	if(surround != m_SndFile.ChnSettings[nChn].dwFlags[CHN_SURROUND])
 	{
 		// Update channel configuration
-		if(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) SetModified();
+		if(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) SetModified();
 
 		m_SndFile.ChnSettings[nChn].dwFlags.set(CHN_SURROUND, surround);
 		if(surround)
@@ -1346,7 +1352,7 @@ bool CModDoc::SetChannelGlobalVolume(CHANNELINDEX nChn, uint16 nVolume)
 	if(m_SndFile.ChnSettings[nChn].nVolume != nVolume)
 	{
 		m_SndFile.ChnSettings[nChn].nVolume = nVolume;
-		if(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) SetModified();
+		if(m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) SetModified();
 		ok = true;
 	}
 	m_SndFile.m_PlayState.Chn[nChn].nGlobalVol = nVolume;
@@ -1362,7 +1368,7 @@ bool CModDoc::SetChannelDefaultPan(CHANNELINDEX nChn, uint16 nPan)
 	{
 		m_SndFile.ChnSettings[nChn].nPan = nPan;
 		m_SndFile.ChnSettings[nChn].dwFlags.reset(CHN_SURROUND);
-		if(m_SndFile.GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)) SetModified();
+		if(m_SndFile.GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) SetModified();
 		ok = true;
 	}
 	m_SndFile.m_PlayState.Chn[nChn].nPan = nPan;
@@ -2154,7 +2160,7 @@ void CModDoc::OnUpdateHasMIDIMappings(CCmdUI *p)
 void CModDoc::OnUpdateXMITMPTOnly(CCmdUI *p)
 {
 	if (p)
-		p->Enable((m_SndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)) ? TRUE : FALSE);
+		p->Enable((m_SndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE);
 }
 
 
@@ -2162,7 +2168,7 @@ void CModDoc::OnUpdateXMITMPTOnly(CCmdUI *p)
 void CModDoc::OnUpdateHasEditHistory(CCmdUI *p)
 {
 	if (p)
-		p->Enable(((m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) || !m_SndFile.GetFileHistory().empty()) ? TRUE : FALSE);
+		p->Enable(((m_SndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) || !m_SndFile.GetFileHistory().empty()) ? TRUE : FALSE);
 }
 
 
@@ -2530,7 +2536,7 @@ void CModDoc::OnViewTempoSwingSettings()
 			SetModified();
 			m_SndFile.m_tempoSwing = dlg.m_tempoSwing;
 		}
-	} else if(GetModType() == MOD_TYPE_MPT)
+	} else if(GetModType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		Reporting::Error(_T("Modern tempo mode needs to be enabled in order to edit tempo swing settings."));
 		OnSongProperties();

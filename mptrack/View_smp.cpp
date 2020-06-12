@@ -1500,7 +1500,7 @@ void CViewSample::OnMouseMove(UINT, CPoint point)
 				const SmpLength xHigh = x / 0x10000;
 
 				const char offsetChar = sndFile.GetModSpecifications().GetEffectLetter(CMD_OFFSET);
-				const bool hasHighOffset = (sndFile.GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM));
+				const bool hasHighOffset = (sndFile.GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM));
 				const char highOffsetChar = sndFile.GetModSpecifications().GetEffectLetter(static_cast<ModCommand::COMMAND>(sndFile.GetModSpecifications().HasCommand(CMD_S3MCMDEX) ? CMD_S3MCMDEX : CMD_XFINEPORTAUPDOWN));
 
 				CString s;
@@ -1677,7 +1677,7 @@ void CViewSample::OnRButtonDown(UINT, CPoint pt)
 			{
 				::AppendMenu(hMenu, MF_STRING | (CanZoomSelection() ? 0 : MF_GRAYED), ID_SAMPLE_ZOOMONSEL, ih->GetKeyTextFromCommand(kcSampleZoomSelection, _T("Zoom")));
 				::AppendMenu(hMenu, MF_STRING, ID_SAMPLE_SETLOOP, _T("Set As Loop"));
-				if (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))
+				if (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 					::AppendMenu(hMenu, MF_STRING, ID_SAMPLE_SETSUSTAINLOOP, _T("Set As Sustain Loop"));
 				::AppendMenu(hMenu, MF_SEPARATOR, 0, _T(""));
 			} else
@@ -1696,7 +1696,7 @@ void CViewSample::OnRButtonDown(UINT, CPoint pt)
 					::AppendMenu(hMenu, MF_STRING | (dwPos >= sample.nLoopStart + 4 ? 0 : MF_GRAYED),
 						ID_SAMPLE_SETLOOPEND, s);
 
-					if (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))
+					if (sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 					{
 						//Set sustain loop points
 						SmpLength sustainEnd = (sample.nSustainEnd > 0) ? sample.nSustainEnd : sample.nLength;
@@ -2380,7 +2380,7 @@ void CViewSample::OnMonoConvert(ctrlSmp::StereoToMonoMode convert)
 					}
 
 					// Finally, adjust sample panning
-					if(sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM))
+					if(sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM))
 					{
 						sample.uFlags.set(CHN_PANNING);
 						sample.nPan = 0;

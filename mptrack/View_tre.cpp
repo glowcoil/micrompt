@@ -1168,7 +1168,7 @@ void CModTree::UpdateView(ModTreeDocInfo &info, UpdateHint hint)
 				else
 					image = Images[image];
 
-				if(sndFile.GetType() == MOD_TYPE_MPT)
+				if(sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 				{
 					const TCHAR *status = _T("");
 					if(sample.uFlags[SMP_KEEPONDISK])
@@ -2953,7 +2953,7 @@ void CModTree::OnItemRightClick(HTREEITEM hItem, CPoint pt)
 						SAMPLEINDEX smpID = static_cast<SAMPLEINDEX>(modItem.val1);
 						const ModSample &sample = sndFile->GetSample(smpID);
 						const bool hasPath = sndFile->SampleHasPath(smpID);
-						const bool menuForThisSample = (sample.HasSampleData() && sndFile->GetType() == MOD_TYPE_MPT) || hasPath;
+					    const bool menuForThisSample = (sample.HasSampleData() && sndFile->GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) || hasPath;
 
 						bool anyPath = false, anyModified = false, anyMissing = false;
 						for(SAMPLEINDEX smp = 1; smp <= sndFile->GetNumSamples(); smp++)
@@ -2976,7 +2976,7 @@ void CModTree::OnItemRightClick(HTREEITEM hItem, CPoint pt)
 						if(menuForThisSample || anyPath || anyModified)
 						{
 							AppendMenu(hMenu, MF_SEPARATOR, NULL, _T(""));
-							if(menuForThisSample) AppendMenu(hMenu, MF_STRING | ((sndFile->GetType() == MOD_TYPE_MPT || hasPath) ? 0 : MF_GRAYED), ID_MODTREE_SETPATH, _T("Set P&ath"));
+						    if(menuForThisSample) AppendMenu(hMenu, MF_STRING | ((sndFile->GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) || hasPath) ? 0 : MF_GRAYED), ID_MODTREE_SETPATH, _T("Set P&ath"));
 							if(menuForThisSample) AppendMenu(hMenu, MF_STRING | ((hasPath && sample.HasSampleData() && sample.uFlags[SMP_MODIFIED]) ? 0 : MF_GRAYED), ID_MODTREE_SAVEITEM, _T("&Save"));
 							if(anyModified) AppendMenu(hMenu, MF_STRING, ID_MODTREE_SAVEALL, _T("&Save All"));
 							if(menuForThisSample) AppendMenu(hMenu, MF_STRING | (hasPath ? 0 : MF_GRAYED), ID_MODTREE_RELOADITEM, _T("&Reload"));

@@ -347,7 +347,7 @@ void CCtrlPatterns::UpdateView(UpdateHint hint, CObject *pObj)
 				m_EditPatName.SetWindowText(mpt::ToCString(m_sndFile.GetCharsetInternal(), m_sndFile.Patterns[nPat].GetName()));
 			}
 
-			BOOL bXMIT = (m_sndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)) ? TRUE : FALSE;
+			BOOL bXMIT = (m_sndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE;
 			m_ToolBar.EnableButton(ID_PATTERN_MIDIMACRO, bXMIT);
 			m_ToolBar.EnableButton(ID_PATTERN_PROPERTIES, bXMIT);
 			m_ToolBar.EnableButton(ID_PATTERN_EXPAND, bXMIT);
@@ -1102,7 +1102,7 @@ void CCtrlPatterns::OnPatternNameChanged()
 		{
 			if(m_sndFile.Patterns[nPat].SetName(s))
 			{
-				if(m_sndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT))
+				if(m_sndFile.GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 					m_modDoc.SetModified();
 				m_modDoc.UpdateAllViews(NULL, PatternHint(nPat).Names(), this);
 			}

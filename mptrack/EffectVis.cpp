@@ -704,7 +704,7 @@ BOOL CEffectVis::OnInitDialog()
 	m_marginBottom = MulDiv(20, dpi, 96);
 	m_innerBorder = MulDiv(4, dpi, 96);
 
-	if(m_ModDoc.GetModType() == MOD_TYPE_MPT && IsPcNote(m_startRow))
+	if(m_ModDoc.GetModType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && IsPcNote(m_startRow))
 	{
 		// If first selected row is a PC Note, default to PC note overwrite mode
 		// and use it as a template for new PC notes that will be created via the visualiser.
@@ -744,7 +744,7 @@ BOOL CEffectVis::OnInitDialog()
 	m_cmbActionList.ResetContent();
 	m_cmbActionList.SetItemData(m_cmbActionList.AddString(_T("Overwrite with effect:")), kAction_OverwriteFX);
 	m_cmbActionList.SetItemData(m_cmbActionList.AddString(_T("Fill blanks with effect:")), kAction_FillFX);
-	if (m_ModDoc.GetModType() == MOD_TYPE_MPT)
+	if (m_ModDoc.GetModType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		m_cmbActionList.SetItemData(m_cmbActionList.AddString(_T("Overwrite with PC note")), kAction_OverwritePC);
 		m_cmbActionList.SetItemData(m_cmbActionList.AddString(_T("Fill blanks with PC note")), kAction_FillPC);

@@ -1056,7 +1056,7 @@ bool CSoundFile::ReadPATInstrument(INSTRUMENTINDEX nInstr, FileReader &file)
 
 	pIns->name = mpt::String::ReadBuf(mpt::String::maybeNullTerminated, instrHeader.name);
 	pIns->nFadeOut = 2048;
-	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		pIns->nNNA = NNA_NOTEOFF;
 		pIns->nDNA = DNA_NOTEFADE;

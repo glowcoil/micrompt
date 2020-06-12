@@ -814,17 +814,17 @@ void CViewInstrument::UpdateNcButtonState()
 		{
 		case ID_ENVSEL_VOLUME:		if (m_nEnv == ENV_VOLUME) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVSEL_PANNING:		if (m_nEnv == ENV_PANNING) dwStyle |= NCBTNS_CHECKED; break;
-		case ID_ENVSEL_PITCH:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))) dwStyle |= NCBTNS_DISABLED;
+		case ID_ENVSEL_PITCH:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))) dwStyle |= NCBTNS_DISABLED;
 									else if (m_nEnv == ENV_PITCH) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_SETLOOP:	if (EnvGetLoop()) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_SUSTAIN:	if (EnvGetSustain()) dwStyle |= NCBTNS_CHECKED; break;
-		case ID_ENVELOPE_CARRY:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))) dwStyle |= NCBTNS_DISABLED;
+		case ID_ENVELOPE_CARRY:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))) dwStyle |= NCBTNS_DISABLED;
 									else if (EnvGetCarry()) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_VOLUME:	if (EnvGetVolEnv()) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_PANNING:	if (EnvGetPanEnv()) dwStyle |= NCBTNS_CHECKED; break;
-		case ID_ENVELOPE_PITCH:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))) dwStyle |= NCBTNS_DISABLED; else
+		case ID_ENVELOPE_PITCH:		if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))) dwStyle |= NCBTNS_DISABLED; else
 									if (EnvGetPitchEnv()) dwStyle |= NCBTNS_CHECKED; break;
-		case ID_ENVELOPE_FILTER:	if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))) dwStyle |= NCBTNS_DISABLED; else
+		case ID_ENVELOPE_FILTER:	if (!(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))) dwStyle |= NCBTNS_DISABLED; else
 									if (EnvGetFilterEnv()) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_VIEWGRID:	if (m_bGrid) dwStyle |= NCBTNS_CHECKED; break;
 		case ID_ENVELOPE_ZOOM_IN:	if (m_zoom >= ENV_MAX_ZOOM) dwStyle |= NCBTNS_DISABLED; break;
@@ -1765,7 +1765,7 @@ void CViewInstrument::OnRButtonDown(UINT flags, CPoint pt)
 			const bool forceRelease = !sndFile.GetModSpecifications().hasReleaseNode && (EnvGetReleaseNode() != ENV_RELEASE_NODE_UNSET);
 			pSubMenu->EnableMenuItem(ID_ENVELOPE_INSERTPOINT, (lastpoint < maxPoint) ? MF_ENABLED : MF_GRAYED);
 			pSubMenu->EnableMenuItem(ID_ENVELOPE_REMOVEPOINT, ((m_nDragItem) && (lastpoint > 0)) ? MF_ENABLED : MF_GRAYED);
-			pSubMenu->EnableMenuItem(ID_ENVELOPE_CARRY, (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) ? MF_ENABLED : MF_GRAYED);
+			pSubMenu->EnableMenuItem(ID_ENVELOPE_CARRY, (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? MF_ENABLED : MF_GRAYED);
 			pSubMenu->EnableMenuItem(ID_ENVELOPE_TOGGLERELEASENODE, ((sndFile.GetModSpecifications().hasReleaseNode && m_nEnv == ENV_VOLUME) || forceRelease) ? MF_ENABLED : MF_GRAYED);
 			pSubMenu->CheckMenuItem(ID_ENVELOPE_SETLOOP, (EnvGetLoop()) ? MF_CHECKED : MF_UNCHECKED);
 			pSubMenu->CheckMenuItem(ID_ENVELOPE_SUSTAIN, (EnvGetSustain()) ? MF_CHECKED : MF_UNCHECKED);

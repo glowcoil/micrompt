@@ -504,7 +504,7 @@ DragItem CViewPattern::GetDragItem(CPoint point, RECT &outRect) const
 		}
 		rect.OffsetRect(GetColumnWidth(), 0);
 	}
-	if(pSndFile->Patterns.IsValidPat(m_nPattern) && (pSndFile->GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)))
+	if(pSndFile->Patterns.IsValidPat(m_nPattern) && (pSndFile->GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		// Clicking on upper-left corner with pattern number (for pattern properties)
 		rect.SetRect(0, 0, m_szHeader.cx, m_szHeader.cy);
@@ -3615,7 +3615,7 @@ LRESULT CViewPattern::OnMidiMsg(WPARAM dwMidiDataParam, LPARAM)
 	}
 
 	// Write parameter control commands if needed.
-	if(paramValue != uint16_max && IsEditingEnabled() && sndFile.GetType() == MOD_TYPE_MPT)
+	if(paramValue != uint16_max && IsEditingEnabled() && sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		const bool liveRecord = IsLiveRecord();
 
@@ -3679,7 +3679,7 @@ LRESULT CViewPattern::OnMidiMsg(WPARAM dwMidiDataParam, LPARAM)
 	case MIDIEvents::evControllerChange:  //Controller change
 		// Checking whether to record MIDI controller change as MIDI macro change.
 		// Don't write this if command was already written by MIDI mapping.
-		if((paramValue == uint16_max || sndFile.GetType() != MOD_TYPE_MPT)
+		if((paramValue == uint16_max || !(sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 		   && (TrackerSettings::Instance().m_dwMidiSetup & MIDISETUP_MIDIMACROCONTROL)
 		   && !TrackerSettings::Instance().midiIgnoreCCs.Get()[midiByte1 & 0x7F])
 		{

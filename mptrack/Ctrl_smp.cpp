@@ -622,7 +622,7 @@ BOOL CCtrlSamples::GetToolTipText(UINT uId, LPTSTR pszText)
 				{
 					if(val > 0)
 						ticks = Util::muldivr_unsigned(sample.nVibDepth, 256, val);
-				} else if(m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+				} else if(m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 				{
 					if(val > 0)
 						ticks = Util::muldivr_unsigned(sample.nVibDepth, 128, val);
@@ -696,7 +696,7 @@ void CCtrlSamples::UpdateView(UpdateHint hint, CObject *pObj)
 
 	const CModSpecifications &specs = m_sndFile.GetModSpecifications();
 	const bool isOPL = IsOPLInstrument();
-	const bool hasSustainLoop = !isOPL && (m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT));
+	const bool hasSustainLoop = !isOPL && (m_sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT));
 
 	LockControls();
 	// Updating Ranges
@@ -718,7 +718,7 @@ void CCtrlSamples::UpdateView(UpdateHint hint, CObject *pObj)
 		m_ComboSustainType.AddString(_T("On"));
 
 		// Bidirectional Loops
-		if (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT))
+		if (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 		{
 			m_ComboLoopType.AddString(_T("Bidi"));
 			m_ComboSustainType.AddString(_T("Bidi"));
@@ -755,7 +755,7 @@ void CCtrlSamples::UpdateView(UpdateHint hint, CObject *pObj)
 		m_EditFileName.EnableWindow(b);
 
 		// AutoVibrato
-		b = (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT)) ? TRUE : FALSE;
+		b = (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) ? TRUE : FALSE;
 		m_ComboAutoVib.EnableWindow(b);
 		m_SpinVibSweep.EnableWindow(b);
 		m_SpinVibDepth.EnableWindow(b);
@@ -775,12 +775,12 @@ void CCtrlSamples::UpdateView(UpdateHint hint, CObject *pObj)
 		}
 
 		// Global Volume
-		b = (m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)) ? TRUE : FALSE;
+		b = (m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) ? TRUE : FALSE;
 		m_EditGlobalVol.EnableWindow(b);
 		m_SpinGlobalVol.EnableWindow(b);
 
 		// Panning
-		b = (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT)) ? TRUE : FALSE;
+		b = (m_sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) ? TRUE : FALSE;
 		m_CheckPanning.EnableWindow(b && !(m_sndFile.GetType() & MOD_TYPE_XM));
 		m_EditPanning.EnableWindow(b);
 		m_SpinPanning.EnableWindow(b);
@@ -896,7 +896,7 @@ void CCtrlSamples::UpdateView(UpdateHint hint, CObject *pObj)
 	if (hintType[HINT_MODTYPE | HINT_SAMPLEINFO | HINT_SMPNAMES])
 	{
 		CheckDlgButton(IDC_CHECK2, m_sndFile.GetSample(m_nSample).uFlags[SMP_KEEPONDISK] ? BST_CHECKED : BST_UNCHECKED);
-		GetDlgItem(IDC_CHECK2)->EnableWindow((m_sndFile.SampleHasPath(m_nSample) && m_sndFile.GetType() == MOD_TYPE_MPT) ? TRUE : FALSE);
+		GetDlgItem(IDC_CHECK2)->EnableWindow((m_sndFile.SampleHasPath(m_nSample) && m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE);
 	}
 
 	// Update OPL instrument status
@@ -2785,7 +2785,7 @@ void CCtrlSamples::OnSetPanningChanged()
 {
 	if (IsLocked()) return;
 	bool b = false;
-	if (m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT))
+	if (m_sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 	{
 		b = IsDlgButtonChecked(IDC_CHECK1) != FALSE;
 	}

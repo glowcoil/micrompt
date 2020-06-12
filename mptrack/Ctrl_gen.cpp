@@ -275,6 +275,7 @@ void CCtrlGeneral::UpdateView(UpdateHint hint, CObject *pHint)
 		mpt::ustring modType;
 		switch(m_sndFile.GetType())
 		{
+		case MOD_TYPE_UPT:	modType = U_("UPTM (MicroPlug"); break;
 		case MOD_TYPE_MOD:	modType = U_("MOD (ProTracker)"); break;
 		case MOD_TYPE_S3M:	modType = U_("S3M (ScreamTracker)"); break;
 		case MOD_TYPE_XM:	modType = U_("XM (FastTracker 2)"); break;

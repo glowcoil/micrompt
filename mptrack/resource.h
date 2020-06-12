@@ -1291,3 +1291,5 @@
 #define _APS_NEXT_SYMED_VALUE           901
 #endif
 #endif
+
+#define ID_FILE_NEWUPT                  44647

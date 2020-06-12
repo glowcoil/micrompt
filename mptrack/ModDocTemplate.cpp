@@ -70,7 +70,7 @@ CDocument *CModDocTemplate::OpenTemplateFile(const mpt::PathString &filename, bo
 			sndFile.m_dwLastSavedWithVersion = Version();
 			sndFile.m_modFormat = ModFormatDetails();
 			sndFile.m_songArtist = TrackerSettings::Instance().defaultArtist;
-			if(sndFile.GetType() != MOD_TYPE_MPT)
+			if(!(sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 			{
 				// Always enforce most compatible playback for legacy module types
 				sndFile.m_playBehaviour = sndFile.GetDefaultPlaybackBehaviour(sndFile.GetType());

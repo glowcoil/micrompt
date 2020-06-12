@@ -95,13 +95,13 @@ bool CModDoc::ChangeModType(MODTYPE nNewType)
 
 	const bool oldTypeIsXM = (nOldType == MOD_TYPE_XM),
 		oldTypeIsS3M = (nOldType == MOD_TYPE_S3M), oldTypeIsIT = (nOldType == MOD_TYPE_IT),
-		oldTypeIsMPT = (nOldType == MOD_TYPE_MPT),
+		oldTypeIsMPT = (nOldType & (MOD_TYPE_MPT | MOD_TYPE_UPT)),
 		oldTypeIsS3M_IT_MPT = (oldTypeIsS3M || oldTypeIsIT || oldTypeIsMPT),
 		oldTypeIsIT_MPT = (oldTypeIsIT || oldTypeIsMPT);
 
 	const bool newTypeIsMOD = (nNewType == MOD_TYPE_MOD), newTypeIsXM =  (nNewType == MOD_TYPE_XM), 
 		newTypeIsS3M = (nNewType == MOD_TYPE_S3M), newTypeIsIT = (nNewType == MOD_TYPE_IT),
-		newTypeIsMPT = (nNewType == MOD_TYPE_MPT), newTypeIsMOD_XM = (newTypeIsMOD || newTypeIsXM), 
+		newTypeIsMPT = (nNewType & (MOD_TYPE_MPT | MOD_TYPE_UPT)), newTypeIsMOD_XM = (newTypeIsMOD || newTypeIsXM), 
 		newTypeIsIT_MPT = (newTypeIsIT || newTypeIsMPT);
 
 	const CModSpecifications &specs = m_SndFile.GetModSpecifications(nNewType);
@@ -290,7 +290,7 @@ bool CModDoc::ChangeModType(MODTYPE nNewType)
 
 			// Fix Row Delay commands when converting between MOD/XM and S3M/IT.
 			// FT2 only considers the rightmost command, ST3/IT only the leftmost...
-			if((nOldType & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)) && (nNewType & (MOD_TYPE_MOD | MOD_TYPE_XM))
+			if((nOldType & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && (nNewType & (MOD_TYPE_MOD | MOD_TYPE_XM))
 				&& m->command == CMD_MODCMDEX && (m->param & 0xF0) == 0xE0)
 			{
 				if(oldTypeIsIT_MPT || m->param != 0xE0)
@@ -307,7 +307,7 @@ bool CModDoc::ChangeModType(MODTYPE nNewType)
 						}
 					}
 				}
-			} else if((nOldType & (MOD_TYPE_MOD | MOD_TYPE_XM)) && (nNewType & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT))
+			} else if((nOldType & (MOD_TYPE_MOD | MOD_TYPE_XM)) && (nNewType & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 				&& m->command == CMD_S3MCMDEX && (m->param & 0xF0) == 0xE0)
 			{
 				// Delete all commands left of the last command

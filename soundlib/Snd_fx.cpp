@@ -35,7 +35,7 @@ OPENMPT_NAMESPACE_BEGIN
 #else
 #define GLOBALVOL_7BIT_FORMATS_EXT (MOD_TYPE_NONE)
 #endif // MODPLUG_TRACKER
-#define GLOBALVOL_7BIT_FORMATS (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM | MOD_TYPE_PTM | MOD_TYPE_MDL | MOD_TYPE_DTM | GLOBALVOL_7BIT_FORMATS_EXT)
+#define GLOBALVOL_7BIT_FORMATS (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM | MOD_TYPE_PTM | MOD_TYPE_MDL | MOD_TYPE_DTM | GLOBALVOL_7BIT_FORMATS_EXT)
 
 
 // Compensate frequency slide LUTs depending on whether we are handling periods or frequency - "up" and "down" in function name are seen from frequency perspective.
@@ -631,7 +631,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 				if(!m_playBehaviour[kMODVBlankTiming])
 				{
 					TEMPO tempo(CalculateXParam(playState.m_nPattern, playState.m_nRow, nChn), 0);
-					if ((adjustMode & eAdjust) && (GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)))
+					if ((adjustMode & eAdjust) && (GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 					{
 						if (tempo.GetInt()) chn.nOldTempo = static_cast<uint8>(tempo.GetInt()); else tempo.Set(chn.nOldTempo);
 					}
@@ -801,7 +801,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 				if(param <= 128)
 				{
 					playState.m_nGlobalVolume = param * 2;
-				} else if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_S3M)))
+				} else if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_S3M)))
 				{
 					playState.m_nGlobalVolume = 256;
 				}
@@ -923,7 +923,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 			case CMD_VIBRATOVOL:
 				if(adjustMode & eAdjust)
 				{
-					uint32 vibTicks = ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]) ? numTicks : nonRowTicks;
+					uint32 vibTicks = ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]) ? numTicks : nonRowTicks;
 					uint32 inc = chn.nVibratoSpeed * vibTicks;
 					if(m_playBehaviour[kITVibratoTremoloPanbrello])
 						inc *= 4;
@@ -934,7 +934,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 			case CMD_TREMOLO:
 				if(adjustMode & eAdjust)
 				{
-					uint32 tremTicks = ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]) ? numTicks : nonRowTicks;
+					uint32 tremTicks = ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]) ? numTicks : nonRowTicks;
 					uint32 inc = chn.nTremoloSpeed * tremTicks;
 					if(m_playBehaviour[kITVibratoTremoloPanbrello])
 						inc *= 4;
@@ -1006,7 +1006,7 @@ std::vector<GetLengthType> CSoundFile::GetLength(enmGetLengthResetMode adjustMod
 					{
 						startTick = paramHi;
 					}
-					if(rowDelay > 1 && startTick != 0 && (GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)))
+					if(rowDelay > 1 && startTick != 0 && (GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 					{
 						startTick += (playState.m_nMusicSpeed + tickDelay) * (rowDelay - 1);
 					}
@@ -1401,7 +1401,7 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 	bool instrumentChanged = (pIns != chn.pModInstrument);
 	const bool sampleChanged = (chn.pModSample != nullptr) && (pSmp != chn.pModSample);
 
-	const bool newTuning = (GetType() == MOD_TYPE_MPT && pIns && pIns->pTuning);
+	const bool newTuning = (GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && pIns && pIns->pTuning);
 	// Playback behavior change for MPT: With portamento don't change sample if it is in
 	// the same instrument as previous sample.
 	if(bPorta && newTuning && pIns == chn.pModInstrument && sampleChanged)
@@ -1442,7 +1442,7 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 
 	// IT Compatibility: Envelope pickup after SCx cut (but don't do this when working with plugins, or else envelope carry stops working)
 	// Test case: cut-carry.it
-	if(!chn.IsSamplePlaying() && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && (!pIns || !pIns->HasValidMIDIChannel()))
+	if(!chn.IsSamplePlaying() && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && (!pIns || !pIns->HasValidMIDIChannel()))
 	{
 		instrumentChanged = true;
 	}
@@ -1533,9 +1533,9 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 			resetAlways = (!chn.nFadeOutVol || instrumentChanged || chn.dwFlags[CHN_KEYOFF]);
 		} else
 		{
-			reset = (!bPorta || !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_DBM)) || m_SongFlags[SONG_ITCOMPATGXX]
+			reset = (!bPorta || !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_DBM)) || m_SongFlags[SONG_ITCOMPATGXX]
 				|| !chn.nLength || (chn.dwFlags[CHN_NOTEFADE] && !chn.nFadeOutVol));
-			resetAlways = !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_DBM)) || instrumentChanged || pIns == nullptr || chn.dwFlags[CHN_KEYOFF | CHN_NOTEFADE];
+			resetAlways = !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_DBM)) || instrumentChanged || pIns == nullptr || chn.dwFlags[CHN_KEYOFF | CHN_NOTEFADE];
 		}
 
 		if(reset)
@@ -1583,7 +1583,7 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 	if(bPorta && pSmp == chn.pModSample && pSmp != nullptr)
 	{
 		// If channel length is 0, we cut a previous sample using SCx. In that case, we have to update sample length, loop points, etc...
-		if(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT) && chn.nLength != 0)
+		if(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT) && chn.nLength != 0)
 			return;
 		// FT2 compatibility: Do not reset key-off status on portamento without instrument number
 		// Test case: Off-Porta.xm
@@ -1595,7 +1595,7 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 		chn.dwFlags.reset(CHN_KEYOFF | CHN_NOTEFADE);
 
 		// IT compatibility: Don't change bidi loop direction when no sample nor instrument is changed.
-		if((m_playBehaviour[kITPingPongNoReset] || !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))) && pSmp == chn.pModSample && !instrumentChanged)
+		if((m_playBehaviour[kITPingPongNoReset] || !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) && pSmp == chn.pModSample && !instrumentChanged)
 			chn.dwFlags = (chn.dwFlags & (CHN_CHANNELFLAGS | CHN_PINGPONGFLAG));
 		else
 			chn.dwFlags = (chn.dwFlags & CHN_CHANNELFLAGS);
@@ -1703,7 +1703,7 @@ void CSoundFile::InstrumentChange(ModChannel &chn, uint32 instr, bool bPorta, bo
 	// XXX is this actually called? In ProcessEffects(), a note-on effect is emulated if there's an on the fly sample change!
 	if(chn.position.GetUInt() >= chn.nLength)
 	{
-		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)))
+		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 		{
 			chn.position.Set(0);
 		}
@@ -1717,7 +1717,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 	const ModSample *pSmp = chn.pModSample;
 	const ModInstrument *pIns = chn.pModInstrument;
 
-	const bool newTuning = (GetType() == MOD_TYPE_MPT && pIns != nullptr && pIns->pTuning);
+	const bool newTuning = (GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && pIns != nullptr && pIns->pTuning);
 	// save the note that's actually used, as it's necessary to properly calculate PPS and stuff
 	const int realnote = note;
 
@@ -1740,7 +1740,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 	if(note > NOTE_MAX)
 	{
 		// Key Off (+ Invalid Note for XM - TODO is this correct?)
-		if(note == NOTE_KEYOFF || !(GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)))
+		if(note == NOTE_KEYOFF || !(GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)))
 		{
 			KeyOff(chn);
 			// IT compatibility: Note-off + instrument releases sample sustain but does not release envelopes or fade the instrument
@@ -1766,7 +1766,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 				chn.dwFlags.set(CHN_NOTEFADE | CHN_FASTVOLRAMP);
 				// IT compatibility: Stopping sample playback by setting sample increment to 0 rather than volume
 				// Test case: NoteOffInstr.it
-				if ((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))) || (m_nInstruments != 0 && !m_playBehaviour[kITInstrWithNoteOff])) chn.nVolume = 0;
+				if ((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) || (m_nInstruments != 0 && !m_playBehaviour[kITInstrWithNoteOff])) chn.nVolume = 0;
 				if (m_playBehaviour[kITInstrWithNoteOff]) chn.increment.Set(0);
 				chn.nFadeOutVol = 0;
 			}
@@ -1840,7 +1840,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 	}
 	chn.m_CalculateFreq = true;
 
-	if ((!bPorta) || (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT)))
+	if ((!bPorta) || (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)))
 		chn.nNewIns = 0;
 
 	uint32 period = GetPeriodFromNote(note, chn.rowCommand.offset, chn.nFineTune, chn.nC5Speed);
@@ -1954,7 +1954,7 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 			if(chn.nVibratoType < 4)
 			{
 				// IT Compatibilty: Slightly different waveform offsets (why does MPT have two different offsets here with IT old effects enabled and disabled?)
-				if(!m_playBehaviour[kITVibratoTremoloPanbrello] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && !m_SongFlags[SONG_ITOLDEFFECTS])
+				if(!m_playBehaviour[kITVibratoTremoloPanbrello] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && !m_SongFlags[SONG_ITOLDEFFECTS])
 					chn.nVibratoPos = 0x10;
 				else if(GetType() == MOD_TYPE_MTM)
 					chn.nVibratoPos = 0x20;
@@ -1974,11 +1974,11 @@ void CSoundFile::NoteChange(ModChannel &chn, int note, bool bPorta, bool bResetE
 	}
 
 	if (!bPorta
-		|| (!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_DBM)))
+		|| (!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_DBM)))
 		|| (chn.dwFlags[CHN_NOTEFADE] && !chn.nFadeOutVol)
 		|| (m_SongFlags[SONG_ITCOMPATGXX] && chn.rowCommand.instr != 0))
 	{
-		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_DBM)) && chn.dwFlags[CHN_NOTEFADE] && !chn.nFadeOutVol)
+		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_DBM)) && chn.dwFlags[CHN_NOTEFADE] && !chn.nFadeOutVol)
 		{
 			chn.ResetEnvelopes();
 			// IT Compatibility: Autovibrato reset
@@ -2158,7 +2158,7 @@ CHANNELINDEX CSoundFile::CheckNNA(CHANNELINDEX nChn, uint32 instr, int note, boo
 		return nnaChn;
 	}
 	// Always NNA cut - using
-	if((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_MT2)) || !m_nInstruments || forceCut) && !srcChn.HasMIDIOutput())
+	if((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_MT2)) || !m_nInstruments || forceCut) && !srcChn.HasMIDIOutput())
 	{
 		if(!srcChn.nLength || srcChn.dwFlags[CHN_MUTE] || !(srcChn.rightVol | srcChn.leftVol))
 		{
@@ -2490,7 +2490,7 @@ bool CSoundFile::ProcessEffects()
 			NoteCut(nChn, cutAtTick, m_playBehaviour[kITSCxStopsSample]);
 		} else if ((cmd == CMD_MODCMDEX) || (cmd == CMD_S3MCMDEX))
 		{
-			if ((!param) && (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT)))
+			if ((!param) && (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)))
 				param = chn.nOldCmdEx;
 			else
 				chn.nOldCmdEx = static_cast<ModCommand::PARAM>(param);
@@ -2502,7 +2502,7 @@ bool CSoundFile::ProcessEffects()
 				if(nStartTick == 0)
 				{
 					//IT compatibility 22. SD0 == SD1
-					if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+					if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 						nStartTick = 1;
 					//ST3 ignores notes with SD0 completely
 					else if(GetType() == MOD_TYPE_S3M)
@@ -2556,7 +2556,7 @@ bool CSoundFile::ProcessEffects()
 					// In Scream Tracker 3 / Impulse Tracker, only the first delay command on this row is considered.
 					// Test cases: PatternDelays.it, PatternDelays.s3m, PatternDelays.xm
 					// XXX In Scream Tracker 3, the "left" channels are evaluated before the "right" channels, which is not emulated here!
-					if(!(GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)) || !m_PlayState.m_nPatternDelay)
+					if(!(GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) || !m_PlayState.m_nPatternDelay)
 					{
 						if(!(GetType() & (MOD_TYPE_S3M)) || (param & 0x0F) != 0)
 						{
@@ -2671,7 +2671,7 @@ bool CSoundFile::ProcessEffects()
 				{
 					note = NOTE_NONE;
 				}
-			} else if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_J2B)) && GetNumInstruments() != 0 && ModCommand::IsNoteOrEmpty(static_cast<ModCommand::NOTE>(note)))
+			} else if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_J2B)) && GetNumInstruments() != 0 && ModCommand::IsNoteOrEmpty(static_cast<ModCommand::NOTE>(note)))
 			{
 				// IT compatibility: Invalid instrument numbers do nothing, but they are remembered for upcoming notes and do not trigger a note in that case.
 				// Test case: InstrumentNumberChange.it
@@ -2697,7 +2697,7 @@ bool CSoundFile::ProcessEffects()
 			bool reloadSampleSettings = (m_playBehaviour[kFT2ReloadSampleSettings] && instr != 0);
 			// ProTracker Compatibility: If a sample was stopped before, lone instrument numbers can retrigger it
 			// Test case: PTSwapEmpty.mod, PTInstrVolume.mod
-			bool keepInstr = (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+			bool keepInstr = (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 				|| (m_playBehaviour[kMODSampleSwap] && !chn.IsSamplePlaying() && (chn.pModSample == nullptr || !chn.pModSample->HasSampleData()));
 
 			// Now it's time for some FT2 crap...
@@ -2931,7 +2931,7 @@ bool CSoundFile::ProcessEffects()
 						//const bool newInstrument = oldInstrument != chn.pModInstrument && chn.pModInstrument->Keyboard[chn.nNewNote - NOTE_MIN] != 0;
 						chn.position.Set(0);
 					}
-				} else if ((GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT) && oldSample != chn.pModSample && ModCommand::IsNote(note)))
+				} else if ((GetType() & (MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT) && oldSample != chn.pModSample && ModCommand::IsNote(note)))
 				{
 					// Special IT case: portamento+note causes sample change -> ignore portamento
 					bPorta = false;
@@ -3201,7 +3201,7 @@ bool CSoundFile::ProcessEffects()
 			}
 			{
 				param = CalculateXParam(m_PlayState.m_nPattern, m_PlayState.m_nRow, nChn);
-				if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT))
+				if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 				{
 					if (param) chn.nOldTempo = static_cast<ModCommand::PARAM>(param); else param = chn.nOldTempo;
 				}
@@ -3248,7 +3248,7 @@ bool CSoundFile::ProcessEffects()
 			if(m_PlayState.m_nTickCount) break;
 			if((!chn.nPeriod || !chn.nNote)
 				&& (chn.pModInstrument == nullptr || !chn.pModInstrument->HasValidMIDIChannel())	// Plugin arpeggio
-				&& !m_playBehaviour[kITArpeggio] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))) break;
+				&& !m_playBehaviour[kITArpeggio] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) break;
 			if (!param && (GetType() & (MOD_TYPE_XM | MOD_TYPE_MOD))) break;	// Only important when editing MOD/XM files (000 effects are removed when loading files where this means "no effect")
 			chn.nCommand = CMD_ARPEGGIO;
 			if (param) chn.nArpeggio = static_cast<ModCommand::PARAM>(param);
@@ -3332,7 +3332,7 @@ bool CSoundFile::ProcessEffects()
 			if(param <= 128)
 			{
 				m_PlayState.m_nGlobalVolume = param * 2;
-			} else if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_S3M)))
+			} else if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_S3M)))
 			{
 				m_PlayState.m_nGlobalVolume = 256;
 			}
@@ -3724,7 +3724,7 @@ void CSoundFile::PortamentoUp(CHANNELINDEX nChn, ModCommand::PARAM param, const 
 	// Process MIDI pitch bend for instrument plugins
 	MidiPortamento(nChn, param, doFineSlides);
 
-	if(GetType() == MOD_TYPE_MPT && chn.pModInstrument && chn.pModInstrument->pTuning)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && chn.pModInstrument && chn.pModInstrument->pTuning)
 	{
 		// Portamento for instruments with custom tuning
 		if(param >= 0xF0 && !doFinePortamentoAsRegular)
@@ -3792,7 +3792,7 @@ void CSoundFile::PortamentoDown(CHANNELINDEX nChn, ModCommand::PARAM param, cons
 	// Process MIDI pitch bend for instrument plugins
 	MidiPortamento(nChn, -static_cast<int>(param), doFineSlides);
 
-	if(GetType() == MOD_TYPE_MPT && chn.pModInstrument && chn.pModInstrument->pTuning)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && chn.pModInstrument && chn.pModInstrument->pTuning)
 	{
 		// Portamento for instruments with custom tuning
 		if(param >= 0xF0 && !doFinePortamentoAsRegular)
@@ -4079,7 +4079,7 @@ void CSoundFile::NoteSlide(ModChannel &chn, uint32 param, bool slideUp, bool ret
 
 std::pair<uint32, bool> CSoundFile::GetVolCmdTonePorta(const ModCommand &m, uint32 startTick) const
 {
-	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_AMS | MOD_TYPE_DMF | MOD_TYPE_DBM | MOD_TYPE_IMF | MOD_TYPE_PSM | MOD_TYPE_J2B | MOD_TYPE_ULT | MOD_TYPE_OKT | MOD_TYPE_MT2 | MOD_TYPE_MDL))
+	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_AMS | MOD_TYPE_DMF | MOD_TYPE_DBM | MOD_TYPE_IMF | MOD_TYPE_PSM | MOD_TYPE_J2B | MOD_TYPE_ULT | MOD_TYPE_OKT | MOD_TYPE_MT2 | MOD_TYPE_MDL))
 	{
 		return {ImpulseTrackerPortaVolCmd[m.vol & 0x0F], false};
 	} else
@@ -4360,7 +4360,7 @@ void CSoundFile::VolumeSlide(ModChannel &chn, ModCommand::PARAM param)
 		// IT compatibility: Ignore slide commands with both nibbles set.
 		if (param & 0x0F)
 		{
-			if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) || (param & 0xF0) == 0)
+			if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) || (param & 0xF0) == 0)
 				newVolume -= (int)((param & 0x0F) * 4);
 		}
 		else
@@ -4421,7 +4421,7 @@ void CSoundFile::PanningSlide(ModChannel &chn, ModCommand::PARAM param, bool mem
 			if (param & 0x0F)
 			{
 				// IT compatibility: Ignore slide commands with both nibbles set.
-				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) || (param & 0xF0) == 0)
+				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) || (param & 0xF0) == 0)
 					nPanSlide = (int)((param & 0x0F) * 4u);
 			} else
 			{
@@ -4527,7 +4527,7 @@ void CSoundFile::ChannelVolSlide(ModChannel &chn, ModCommand::PARAM param) const
 		{
 			if (param & 0x0F)
 			{
-				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_J2B | MOD_TYPE_DBM)) || (param & 0xF0) == 0)
+				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_J2B | MOD_TYPE_DBM)) || (param & 0xF0) == 0)
 					nChnSlide = -(int)(param & 0x0F);
 			} else
 			{
@@ -4752,7 +4752,7 @@ void CSoundFile::ExtendedS3MCommands(CHANNELINDEX nChn, ModCommand::PARAM param)
 				case 12:	chn.PitchEnv.flags.set(ENV_ENABLED); break;
 				case 13:	// S7D: Enable pitch envelope, force to play as pitch envelope
 				case 14:	// S7E: Enable pitch envelope, force to play as filter envelope
-					if(GetType() == MOD_TYPE_MPT)
+			        if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 					{
 						chn.PitchEnv.flags.set(ENV_ENABLED);
 						chn.PitchEnv.flags.set(ENV_FILTER, param != 13);
@@ -4786,7 +4786,7 @@ void CSoundFile::ExtendedS3MCommands(CHANNELINDEX nChn, ModCommand::PARAM param)
 		if(param == 0)
 		{
 			//IT compatibility 22. SC0 == SC1
-			if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+			if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 				param = 1;
 			// ST3 doesn't cut notes with SC0
 			else if(GetType() == MOD_TYPE_S3M)
@@ -5469,7 +5469,7 @@ void CSoundFile::RetrigNote(CHANNELINDEX nChn, int param, int offset)
 	} else
 	{
 		// old routines
-		if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT))
+		if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))
 		{
 			if (!retrigSpeed) retrigSpeed = 1;
 			if ((retrigCount) && (!(retrigCount % retrigSpeed))) doRetrig = true;
@@ -5557,8 +5557,8 @@ void CSoundFile::RetrigNote(CHANNELINDEX nChn, int param, int offset)
 			ProcessMidiOut(nChn);	//Send retrig to Midi
 #endif // NO_PLUGINS
 		}
-		if ((GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)) && (!chn.rowCommand.note) && (oldPeriod)) chn.nPeriod = oldPeriod;
-		if (!(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT))) retrigCount = 0;
+		if ((GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) && (!chn.rowCommand.note) && (oldPeriod)) chn.nPeriod = oldPeriod;
+		if (!(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))) retrigCount = 0;
 		// IT compatibility: see previous IT compatibility comment =)
 		if(m_playBehaviour[kITRetrigger]) chn.position.Set(0);
 
@@ -5857,7 +5857,7 @@ void CSoundFile::GlobalVolSlide(ModCommand::PARAM param, uint8 &nOldGlobalVolSli
 			if (param & 0xF0)
 			{
 				// IT compatibility: Ignore slide commands with both nibbles set.
-				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM)) || (param & 0x0F) == 0)
+				if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM)) || (param & 0x0F) == 0)
 					nGlbSlide = (int)((param & 0xF0) >> 4) * 2;
 			} else
 			{
@@ -5867,7 +5867,7 @@ void CSoundFile::GlobalVolSlide(ModCommand::PARAM param, uint8 &nOldGlobalVolSli
 	}
 	if (nGlbSlide)
 	{
-		if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM))) nGlbSlide *= 2;
+		if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_IMF | MOD_TYPE_J2B | MOD_TYPE_MID | MOD_TYPE_AMS | MOD_TYPE_DBM))) nGlbSlide *= 2;
 		nGlbSlide += m_PlayState.m_nGlobalVolume;
 		Limit(nGlbSlide, 0, 256);
 		m_PlayState.m_nGlobalVolume = nGlbSlide;
@@ -5911,7 +5911,11 @@ uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 offset, int32 nFineTune,
 {
 	if (note == NOTE_NONE || (note >= NOTE_MIN_SPECIAL)) return 0;
 	note -= NOTE_MIN;
-	if (!UseFinetuneAndTranspose())
+	if(GetType() == MOD_TYPE_UPT)
+	{
+		return (uint32)round((float)nC5Speed * powf(2.0, ((float)note / 12.0f + (float)offset / 1200.0f) - 5.0f));
+	}
+	else if (!UseFinetuneAndTranspose())
 	{
 		if(GetType() & (MOD_TYPE_MDL | MOD_TYPE_DTM))
 		{
@@ -5922,8 +5926,7 @@ uint32 CSoundFile::GetPeriodFromNote(uint32 note, int32 offset, int32 nFineTune,
 		{
 			// In IT linear slide mode, directly use frequency in Hertz rather than periods.
 			if(m_playBehaviour[kHertzInLinearMode] || GetType() == MOD_TYPE_669)
-				//return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
-				return (uint32)round((float)nC5Speed * powf(2.0, ((float)note / 12.0f + (float)offset / 1200.0f) - 5.0f));
+				return Util::muldiv_unsigned(nC5Speed, LinearSlideUpTable[(note % 12u) * 16u] << (note / 12u), 65536 << 5);
 			else
 				return (FreqS3MTable[note % 12u] << 5) >> (note / 12);
 		} else

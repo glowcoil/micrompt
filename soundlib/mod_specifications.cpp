@@ -24,6 +24,59 @@ namespace ModSpecs
 #define SongFlag(x) (FlagSet<SongFlags>::store_type(0) | x)
 
 
+constexpr CModSpecifications uptm_ =
+    {
+        /*
+	TODO: Proper, less arbitrarily chosen values here.
+	NOTE: If changing limits, see whether:
+			-savefile format and GUI methods can handle new values(might not be a small task :).
+	 */
+        MOD_TYPE_UPT,                                                                             // Internal MODTYPE value
+        "uptm",                                                                                   // File extension
+        NOTE_MIN,                                                                                 // Minimum note index
+        NOTE_MAX,                                                                                 // Maximum note index
+        4000,                                                                                     // Pattern max.
+        4000,                                                                                     // Order max.
+        MAX_SEQUENCES,                                                                            // Sequences max
+        1,                                                                                        // Channel min
+        127,                                                                                      // Channel max
+        32,                                                                                       // Min tempo
+        512,                                                                                      // Max tempo
+        1,                                                                                        // Min Speed
+        255,                                                                                      // Max Speed
+        1,                                                                                        // Min pattern rows
+        1024,                                                                                     // Max pattern rows
+        25,                                                                                       // Max mod name length
+        25,                                                                                       // Max sample name length
+        12,                                                                                       // Max sample filename length
+        25,                                                                                       // Max instrument name length
+        12,                                                                                       // Max instrument filename length
+        0,                                                                                        // Max comment line length
+        3999,                                                                                     // SamplesMax
+        255,                                                                                      // instrumentMax
+        mixLevels1_17RC3,                                                                         // defaultMixLevels
+        SongFlag(SONG_LINEARSLIDES | SONG_EXFILTERRANGE | SONG_ITOLDEFFECTS | SONG_ITCOMPATGXX),  // Supported song flags
+        200,                                                                                      // Max MIDI mapping directives
+        MAX_ENVPOINTS,                                                                            // Envelope point count
+        true,                                                                                     // Has notecut.
+        true,                                                                                     // Has noteoff.
+        true,                                                                                     // Has notefade.
+        true,                                                                                     // Has envelope release node
+        true,                                                                                     // Has song comments
+        true,                                                                                     // Has "+++" pattern
+        true,                                                                                     // Has "---" pattern
+        true,                                                                                     // Has restart position (order)
+        true,                                                                                     // Supports plugins
+        true,                                                                                     // Custom pattern time signatures
+        true,                                                                                     // Pattern names
+        true,                                                                                     // Has artist name
+        true,                                                                                     // Has default resampling
+        true,                                                                                     // Fixed point tempo
+        " JFEGHLKRXODB?CQATI?SMNVW?UY?P?Z\\:#????????",                                           // Supported Effects
+        " vpcdabuh??gfe?o",                                                                       // Supported Volume Column commands
+};
+
+
 constexpr CModSpecifications mptm_ =
 {
 	/*
@@ -411,8 +464,9 @@ constexpr CModSpecifications itEx_ =
 	" vpcdab?h??gfe??",							// Supported Volume Column commands
 };
 
-const CModSpecifications *Collection[8] = { &mptm_, &mod_, &s3m_, &s3mEx_, &xm_, &xmEx_, &it_, &itEx_ };
+const CModSpecifications *Collection[9] = { &uptm_, &mptm_, &mod_, &s3m_, &s3mEx_, &xm_, &xmEx_, &it_, &itEx_ };
 
+const CModSpecifications & uptm = uptm_;
 const CModSpecifications & mptm = mptm_;
 const CModSpecifications & mod = mod_;
 const CModSpecifications & s3m = s3m_;
@@ -460,7 +514,7 @@ bool CModSpecifications::HasNote(ModCommand::NOTE note) const
 		else if(note == NOTE_FADE)
 			return hasNoteFade;
 		else
-			return (internalType == MOD_TYPE_MPT);
+			return (internalType & (MOD_TYPE_MPT | MOD_TYPE_UPT));
 	} else if(note == NOTE_NONE)
 		return true;
 	return false;

@@ -1290,7 +1290,7 @@ void QuickChannelProperties::Show(CModDoc *modDoc, CHANNELINDEX chn, PATTERNINDE
 	UpdateDisplay();
 
 	const BOOL enablePan = (document->GetModType() & (MOD_TYPE_XM | MOD_TYPE_MOD)) ? FALSE : TRUE;
-	const BOOL itOnly = (document->GetModType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) ? TRUE : FALSE;
+	const BOOL itOnly = (document->GetModType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE;
 
 	// Volume controls
 	volSlider.EnableWindow(itOnly);
@@ -1304,7 +1304,7 @@ void QuickChannelProperties::Show(CModDoc *modDoc, CHANNELINDEX chn, PATTERNINDE
 	::EnableWindow(::GetDlgItem(m_hWnd, IDC_CHECK2), itOnly);
 
 	// Channel name
-	nameEdit.EnableWindow((document->GetModType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM)) ? TRUE : FALSE);
+	nameEdit.EnableWindow((document->GetModType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM)) ? TRUE : FALSE);
 
 	ShowWindow(SW_SHOW);
 	visible = true;

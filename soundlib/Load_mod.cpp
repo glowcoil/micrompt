@@ -80,7 +80,7 @@ void CSoundFile::ModSaveCommand(uint8 &command, uint8 &param, bool toXM, bool co
 	case CMD_NONE:		command = param = 0; break;
 	case CMD_ARPEGGIO:	command = 0; break;
 	case CMD_PORTAMENTOUP:
-		if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_STM|MOD_TYPE_MPT))
+		if (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_STM|MOD_TYPE_MPT|MOD_TYPE_UPT))
 		{
 			if ((param & 0xF0) == 0xE0) { command = 0x0E; param = ((param & 0x0F) >> 2) | 0x10; break; }
 			else if ((param & 0xF0) == 0xF0) { command = 0x0E; param &= 0x0F; param |= 0x10; break; }
@@ -88,7 +88,7 @@ void CSoundFile::ModSaveCommand(uint8 &command, uint8 &param, bool toXM, bool co
 		command = 0x01;
 		break;
 	case CMD_PORTAMENTODOWN:
-		if(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_STM|MOD_TYPE_MPT))
+		if(GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_STM|MOD_TYPE_MPT|MOD_TYPE_UPT))
 		{
 			if ((param & 0xF0) == 0xE0) { command = 0x0E; param= ((param & 0x0F) >> 2) | 0x20; break; }
 			else if ((param & 0xF0) == 0xF0) { command = 0x0E; param &= 0x0F; param |= 0x20; break; }

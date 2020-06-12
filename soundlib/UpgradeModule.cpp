@@ -49,7 +49,7 @@ struct UpgradePatternData
 			}
 		}
 
-		else if(modType & (MOD_TYPE_IT | MOD_TYPE_MPT))
+		else if(modType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 		{
 			if(version < MPT_V("1.17.03.02") ||
 				(!compatPlay && version < MPT_V("1.20.00.00")))
@@ -211,7 +211,7 @@ struct UpgradePatternData
 		}
 
 		// Volume column offset in IT/XM is bad, mkay?
-		if(modType != MOD_TYPE_MPT && m.volcmd == VOLCMD_OFFSET && m.command == CMD_NONE)
+		if(!(modType & (MOD_TYPE_MPT | MOD_TYPE_UPT)) && m.volcmd == VOLCMD_OFFSET && m.command == CMD_NONE)
 		{
 			m.command = CMD_OFFSET;
 			m.param = m.vol << 3;
@@ -234,7 +234,7 @@ void CSoundFile::UpgradeModule()
 		m_playBehaviour.reset(MSF_COMPATIBLE_PLAY);
 	}
 
-	const bool compatModeIT = m_playBehaviour[MSF_COMPATIBLE_PLAY] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT));
+	const bool compatModeIT = m_playBehaviour[MSF_COMPATIBLE_PLAY] && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT));
 	const bool compatModeXM = m_playBehaviour[MSF_COMPATIBLE_PLAY] && GetType() == MOD_TYPE_XM;
 
 	if(m_dwLastSavedWithVersion < MPT_V("1.20.00.00"))
@@ -277,7 +277,7 @@ void CSoundFile::UpgradeModule()
 			}
 		}
 
-		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && (m_dwLastSavedWithVersion < MPT_V("1.17.03.02") || !compatModeIT))
+		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && (m_dwLastSavedWithVersion < MPT_V("1.17.03.02") || !compatModeIT))
 		{
 			// In the IT format, a sweep value of 0 shouldn't apply vibrato at all. Previously, a value of 0 was treated as "no sweep".
 			// In OpenMPT 1.17.03.02, this was corrected in compatible mode, in OpenMPT 1.20 it is corrected in normal mode as well,
@@ -297,7 +297,7 @@ void CSoundFile::UpgradeModule()
 
 	if(m_dwLastSavedWithVersion < MPT_V("1.20.02.10")
 		&& m_dwLastSavedWithVersion != MPT_V("1.20.00.00")
-		&& (GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)))
+		&& (GetType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		bool instrPlugs = false;
 		// Old pitch wheel commands were closest to sample pitch bend commands if the PWD is 13.
@@ -317,7 +317,7 @@ void CSoundFile::UpgradeModule()
 
 	if(m_dwLastSavedWithVersion < MPT_V("1.22.03.12")
 		&& m_dwLastSavedWithVersion != MPT_V("1.22.00.00")
-		&& (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+		&& (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 		&& (m_playBehaviour[MSF_COMPATIBLE_PLAY] || m_playBehaviour[kMPTOldSwingBehaviour]))
 	{
 		// The "correct" pan swing implementation did nothing if the instrument also had a pan envelope.
@@ -534,7 +534,7 @@ void CSoundFile::UpgradeModule()
 		}
 	}
 	
-	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+	if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		// The following behaviours were added in/after OpenMPT 1.26, so are not affected by the upgrade mechanism above.
 		static constexpr PlayBehaviourVersion behaviours[] =
@@ -628,7 +628,7 @@ void CSoundFile::UpgradeModule()
 	{
 		// No frequency slides in Hz before OpenMPT 1.24
 		m_playBehaviour.reset(kHertzInLinearMode);
-	} else if(m_dwLastSavedWithVersion >= MPT_V("1.24.00.00") && m_dwLastSavedWithVersion < MPT_V("1.26.00.00") && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)))
+	} else if(m_dwLastSavedWithVersion >= MPT_V("1.24.00.00") && m_dwLastSavedWithVersion < MPT_V("1.26.00.00") && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		// Frequency slides were always in Hz rather than periods in this version range.
 		m_playBehaviour.set(kHertzInLinearMode);

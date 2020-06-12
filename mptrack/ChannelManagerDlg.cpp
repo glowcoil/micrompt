@@ -935,7 +935,7 @@ void CChannelManagerDlg::OnMButtonDown(UINT /*nFlags*/, CPoint point)
 {
 	CHANNELINDEX chn;
 	CRect rect;
-	if(m_ModDoc != nullptr && (m_ModDoc->GetModType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)) && ButtonHit(point, &chn, &rect))
+	if(m_ModDoc != nullptr && (m_ModDoc->GetModType() & (MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && ButtonHit(point, &chn, &rect))
 	{
 		// Rename channel
 		CString s = mpt::cformat(_T("New name for channel %1:"))(chn +1);

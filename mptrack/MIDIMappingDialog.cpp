@@ -154,7 +154,7 @@ BOOL CMIDIMappingDialog::OnInitDialog()
 		UpdateDialog();
 	}
 
-	GetDlgItem(IDC_CHECK_PATRECORD)->EnableWindow((m_sndFile.GetType() == MOD_TYPE_MPT) ? TRUE : FALSE);
+	GetDlgItem(IDC_CHECK_PATRECORD)->EnableWindow((m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE);
 
 	CMainFrame::GetMainFrame()->SetMidiRecordWnd(GetSafeHwnd());
 

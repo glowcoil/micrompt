@@ -1759,7 +1759,7 @@ bool CDLSBank::ExtractInstrument(CSoundFile &sndFile, INSTRUMENTINDEX nInstr, ui
 	{
 		for (uint32 iNoteMap=0; iNoteMap<NOTE_MAX; iNoteMap++)
 		{
-			if(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MID|MOD_TYPE_MPT))
+			if(sndFile.GetType() & (MOD_TYPE_IT|MOD_TYPE_MID|MOD_TYPE_MPT|MOD_TYPE_UPT))
 			{
 				// Formate has instrument note mapping
 				if (iNoteMap < pDlsIns->Regions[nDrumRgn].uKeyMin) pIns->NoteMap[iNoteMap] = (uint8)(pDlsIns->Regions[nDrumRgn].uKeyMin + 1);

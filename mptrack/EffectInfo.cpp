@@ -39,11 +39,11 @@ struct MPTEFFECTINFO
 
 #define MOD_TYPE_MODXM		(ModType(0) | MOD_TYPE_MOD | MOD_TYPE_XM)
 #define MOD_TYPE_S3MIT		(ModType(0) | MOD_TYPE_S3M | MOD_TYPE_IT)
-#define MOD_TYPE_S3MITMPT	(ModType(0) | MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT)
-#define MOD_TYPE_NOMOD		(ModType(0) | MOD_TYPE_S3M | MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)
+#define MOD_TYPE_S3MITMPT	(ModType(0) | MOD_TYPE_S3M | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)
+#define MOD_TYPE_NOMOD		(ModType(0) | MOD_TYPE_S3M | MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)
 #define MOD_TYPE_XMIT		(ModType(0) | MOD_TYPE_XM | MOD_TYPE_IT)
-#define MOD_TYPE_XMITMPT	(ModType(0) | MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT)
-#define MOD_TYPE_ITMPT		(ModType(0) | MOD_TYPE_IT | MOD_TYPE_MPT)
+#define MOD_TYPE_XMITMPT	(ModType(0) | MOD_TYPE_XM | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)
+#define MOD_TYPE_ITMPT		(ModType(0) | MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)
 #define MOD_TYPE_ALL		(~ModType(0))
 
 
@@ -120,7 +120,7 @@ static constexpr MPTEFFECTINFO gFXInfo[] =
 	// MPT IT extensions and special effects
 	{CMD_S3MCMDEX,		0xF0,0x90,	0,	MOD_TYPE_S3MITMPT,	_T("Sound Control")},
 	{CMD_S3MCMDEX,		0xF0,0x70,	0,	MOD_TYPE_ITMPT,	_T("Instr. Control")},
-	{CMD_DELAYCUT,		0x00,0x00,	0,	MOD_TYPE_MPT,	_T("Note Delay and Cut")},
+	{CMD_DELAYCUT,		0x00,0x00,	0,	ModType(0) | MOD_TYPE_MPT | MOD_TYPE_UPT,	_T("Note Delay and Cut")},
 	{CMD_XPARAM,		0,0,	0,	MOD_TYPE_XMITMPT,	_T("Parameter Extension")},
 	{CMD_NOTESLIDEUP,		0,0,	0,	ModType(0) | MOD_TYPE_IMF | MOD_TYPE_PTM,	_T("Note Slide Up")}, // IMF / PTM effect
 	{CMD_NOTESLIDEDOWN,		0,0,	0,	ModType(0) | MOD_TYPE_IMF | MOD_TYPE_PTM,	_T("Note Slide Down")}, // IMF / PTM effect
@@ -296,7 +296,7 @@ bool EffectInfo::GetEffectInfo(UINT ndx, CString *s, bool bXX, ModCommand::PARAM
 			else nmax = 0xFF;
 			break;
 		case CMD_GLOBALVOLUME:
-			nmax = (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) ? 128 : 64;
+			nmax = (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) ? 128 : 64;
 			break;
 
 		case CMD_MODCMDEX:
@@ -596,7 +596,7 @@ bool EffectInfo::GetEffectNameEx(CString &pszName, UINT ndx, UINT param, CHANNEL
 		{
 			ModCommand::PARAM minVal = 0, maxVal = 128;
 			GetEffectInfo(ndx, nullptr, false, &minVal, &maxVal);
-			if((sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_S3M)) && param > maxVal)
+		    if((sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_S3M)) && param > maxVal)
 				s = _T("undefined");
 			else
 				s.Format(_T("%u"), std::min(static_cast<uint32>(param), static_cast<uint32>(maxVal)));
@@ -691,9 +691,9 @@ bool EffectInfo::GetEffectNameEx(CString &pszName, UINT ndx, UINT param, CHANNEL
 					case 0x0A:	s = _T("7A: Pan Env On"); break;
 					case 0x0B:	s = _T("7B: Pitch Env Off"); break;
 					case 0x0C:	s = _T("7C: Pitch Env On"); break;
-					case 0x0D:	if(sndFile.GetType() == MOD_TYPE_MPT) { s = _T("7D: Force Pitch Env"); break; }
+					case 0x0D:	if(sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) { s = _T("7D: Force Pitch Env"); break; }
 								[[fallthrough]];
-					case 0x0E:	if(sndFile.GetType() == MOD_TYPE_MPT) { s = _T("7E: Force Filter Env"); break; }
+					case 0x0E:	if(sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) { s = _T("7E: Force Filter Env"); break; }
 								[[fallthrough]];
 					default:	s.Format(_T("%02X: undefined"), param); break;
 					}
@@ -752,7 +752,7 @@ bool EffectInfo::GetEffectNameEx(CString &pszName, UINT ndx, UINT param, CHANNEL
 						case 0xC0: // note cut
 						case 0xD0: // note delay
 							//IT compatibility 22. SD0 == SD1, SC0 == SC1
-							if(((param & 0x0F) == 1) || ((param & 0x0F) == 0 && (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))))
+						    if(((param & 0x0F) == 1) || ((param & 0x0F) == 0 && (sndFile.GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))))
 								s = _T("1 tick");
 							else
 								s += _T(" ticks");
@@ -888,7 +888,7 @@ static constexpr MPTVOLCMDINFO gVolCmdInfo[] =
 	{VOLCMD_PORTAUP,		MOD_TYPE_ITMPT,		_T("Portamento up")},
 	{VOLCMD_PORTADOWN,		MOD_TYPE_ITMPT,		_T("Portamento down")},
 	{VOLCMD_DELAYCUT,		MOD_TYPE_NONE,		_T("")},
-	{VOLCMD_OFFSET,			MOD_TYPE_MPT,		_T("Sample Cue")},
+	{VOLCMD_OFFSET,			ModType(0) | MOD_TYPE_MPT | MOD_TYPE_UPT,		_T("Sample Cue")},
 };
 
 static_assert(CountOf(gVolCmdInfo) == (MAX_VOLCMDS - 1));

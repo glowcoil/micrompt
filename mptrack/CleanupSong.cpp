@@ -112,7 +112,7 @@ BOOL CModCleanupDlg::OnInitDialog()
 
 	CSoundFile &sndFile = modDoc.GetSoundFile();
 
-	GetDlgItem(m_CleanupIDtoDlgID[kMergeSequences])->EnableWindow((sndFile.GetType() & MOD_TYPE_MPT) ? TRUE : FALSE);
+	GetDlgItem(m_CleanupIDtoDlgID[kMergeSequences])->EnableWindow((sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)) ? TRUE : FALSE);
 
 	GetDlgItem(m_CleanupIDtoDlgID[kRemoveSamples])->EnableWindow((sndFile.GetNumSamples() > 0) ? TRUE : FALSE);
 	GetDlgItem(m_CleanupIDtoDlgID[kRearrangeSamples])->EnableWindow((sndFile.GetNumSamples() > 1) ? TRUE : FALSE);

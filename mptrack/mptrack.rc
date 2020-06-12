@@ -2631,6 +2631,7 @@ BEGIN
     BEGIN
         POPUP "&New\tCtrl+N"
         BEGIN
+            MENUITEM "MicroPlug Module",            ID_FILE_NEWUPT
             MENUITEM "&IT",                         ID_FILE_NEWIT
             MENUITEM "&XM",                         ID_FILE_NEWXM
             MENUITEM "&S3M",                        ID_FILE_NEWS3M
@@ -2929,6 +2930,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FILE_NEWUPT          "Create a new MicroPlug music module\nNew MicroPlug"
     ID_FILE_NEWMOD          "Create a new ProTracker (MOD) music module\nNew MOD"
     ID_FILE_NEWXM           "Create a new FastTracker II (XM) music module\nNew XM"
     ID_FILE_NEWS3M          "Create a new ScreamTracker (S3M) music module\nNew S3M"

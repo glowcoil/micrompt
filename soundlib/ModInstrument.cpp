@@ -59,7 +59,7 @@ void InstrumentEnvelope::Convert(MODTYPE fromType, MODTYPE toType)
 		}
 	}
 
-	if(toType != MOD_TYPE_MPT)
+	if(!(toType & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		nReleaseNode = ENV_RELEASE_NODE_UNSET;
 	}
@@ -194,7 +194,7 @@ void ModInstrument::Convert(MODTYPE fromType, MODTYPE toType)
 	PanEnv.Convert(fromType, toType);
 	PitchEnv.Convert(fromType, toType);
 
-	if(fromType == MOD_TYPE_XM && (toType & (MOD_TYPE_IT | MOD_TYPE_MPT)))
+	if(fromType == MOD_TYPE_XM && (toType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		if(!VolEnv.dwFlags[ENV_ENABLED])
 		{
@@ -217,7 +217,7 @@ void ModInstrument::Convert(MODTYPE fromType, MODTYPE toType)
 	}
 
 	// MPT-specific features - remove instrument tunings, Pitch/Tempo Lock, cutoff / resonance swing and filter mode for other formats
-	if(!(toType & MOD_TYPE_MPT))
+	if(!(toType & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		SetTuning(nullptr);
 		pitchToTempoLock.Set(0);

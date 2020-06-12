@@ -43,6 +43,8 @@ const uint16 verMptFileVer = 0x891;
 const uint16 verMptFileVerLoadLimit = 0x1000; // If cwtv-field is greater or equal to this value,
 											  // the MPTM file will not be loaded.
 
+const uint16 verUptFileVer = 0x991;
+
 /*
 MPTM version history for cwtv-field in "IT" header (only for MPTM files!):
 0x890(1.18.02.00) -> 0x891(1.19.00.00): Pattern-specific time signatures
@@ -457,13 +459,19 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 			{
 				if(file.Seek(mptStartPos) && file.ReadMagic("228"))
 				{
-					SetType(MOD_TYPE_MPT);
+					if(fileHeader.cwtv == 0x991)
+					{
+						SetType(MOD_TYPE_UPT);
+					} else
+					{
+						SetType(MOD_TYPE_MPT);
+					}
 
 					if(fileHeader.cwtv >= verMptFileVerLoadLimit)
 					{
 						AddToLog(str_LoadingIncompatibleVersion);
 						return false;
-					} else if(fileHeader.cwtv > verMptFileVer)
+					} else if((GetType() == MOD_TYPE_MPT && fileHeader.cwtv > verMptFileVer) || (GetType() == MOD_TYPE_UPT && fileHeader.cwtv > verUptFileVer))
 					{
 						AddToLog(str_LoadingMoreRecentVersion);
 					}
@@ -935,7 +943,11 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 			// Now we actually update the pattern-row entry the note,instrument etc.
 			// Note
 			if(chnMask[ch] & 1)
+			{
 				patternData.Skip(1);
+				if(GetType() == MOD_TYPE_UPT)
+					patternData.Skip(1);
+			}
 			// Instrument
 			if(chnMask[ch] & 2)
 				patternData.Skip(1);
@@ -1055,6 +1067,7 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 			if(chnMask[ch] & 0x10)
 			{
 				m.note = lastValue[ch].note;
+				m.offset = lastValue[ch].offset;
 			}
 			if(chnMask[ch] & 0x20)
 			{
@@ -1075,13 +1088,21 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 				uint8 note = patternData.ReadUint8();
 				if(note < 0x80)
 					note += NOTE_MIN;
-				if(!(GetType() & MOD_TYPE_MPT))
+				if(!(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 				{
 					if(note > NOTE_MAX && note < 0xFD) note = NOTE_FADE;
 					else if(note == 0xFD) note = NOTE_NONE;
 				}
 				m.note = note;
 				lastValue[ch].note = note;
+
+				if(GetType() == MOD_TYPE_UPT)
+				{
+					uint8 offset = patternData.ReadUint8();
+					offset %= 100;
+					m.offset = offset;
+					lastValue[ch].offset = offset;
+				}
 			}
 			if(chnMask[ch] & 2)
 			{
@@ -1244,7 +1265,7 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 		}
 	}
 
-	if(GetType() == MOD_TYPE_MPT)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		// START - mpt specific:
 		if(fileHeader.cwtv > 0x0889 && file.Seek(mptStartPos))
@@ -1253,8 +1274,8 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 		}
 	}
 
-	m_modFormat.formatName = (GetType() == MOD_TYPE_MPT) ? U_("OpenMPT MPTM") : mpt::format(U_("Impulse Tracker %1.%2"))(fileHeader.cmwt >> 8, mpt::ufmt::hex0<2>(fileHeader.cmwt & 0xFF));
-	m_modFormat.type = (GetType() == MOD_TYPE_MPT) ? U_("mptm") : U_("it");
+	m_modFormat.formatName = (GetType() == MOD_TYPE_UPT) ? U_("MicroPlug UPTM") : (GetType() == MOD_TYPE_MPT) ? U_("OpenMPT MPTM") : mpt::format(U_("Impulse Tracker %1.%2"))(fileHeader.cmwt >> 8, mpt::ufmt::hex0<2>(fileHeader.cmwt & 0xFF));
+	m_modFormat.type = (GetType() == MOD_TYPE_UPT) ? U_("uptm") : (GetType() == MOD_TYPE_MPT) ? U_("mptm") : U_("it");
 	m_modFormat.madeWithTracker = std::move(madeWithTracker);
 	m_modFormat.charset = m_dwLastSavedWithVersion ? mpt::Charset::Windows1252 : mpt::Charset::CP437;
 
@@ -1364,7 +1385,7 @@ static uint32 SaveITEditHistory(const CSoundFile &sndFile, std::ostream *file)
 bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool compatibilityExport)
 {
 
-	const CModSpecifications &specs = (GetType() == MOD_TYPE_MPT ? ModSpecs::mptm : (compatibilityExport ? ModSpecs::it : ModSpecs::itEx));
+	const CModSpecifications &specs = (GetType() == MOD_TYPE_UPT ? ModSpecs::uptm : GetType() == MOD_TYPE_MPT ? ModSpecs::mptm : (compatibilityExport ? ModSpecs::it : ModSpecs::itEx));
 
 	uint32 dwChnNamLen;
 	ITFileHeader itHeader;
@@ -1380,7 +1401,7 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 	itHeader.highlight_minor = (uint8)std::min(m_nDefaultRowsPerBeat, ROWINDEX(uint8_max));
 	itHeader.highlight_major = (uint8)std::min(m_nDefaultRowsPerMeasure, ROWINDEX(uint8_max));
 
-	if(GetType() == MOD_TYPE_MPT)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		itHeader.ordnum = Order().GetLengthTailTrimmed();
 		if(Order().NeedsExtraDatafield() && itHeader.ordnum > 256)
@@ -1410,7 +1431,12 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 	if(GetType() == MOD_TYPE_MPT)
 	{
 		// MPTM
-		itHeader.cwtv = verMptFileVer;	// Used in OMPT-hack versioning.
+		itHeader.cwtv = verMptFileVer;  // Used in OMPT-hack versioning.
+		itHeader.cmwt = 0x888;
+	} else if(GetType() == MOD_TYPE_UPT)
+	{
+		// UPTM
+		itHeader.cwtv = verUptFileVer;
 		itHeader.cmwt = 0x888;
 	} else
 	{
@@ -1642,8 +1668,8 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 		for(ROWINDEX row = 0; row < writeRows; row++)
 		{
 			uint32 len = 0;
-			// Maximum 7 bytes per cell, plus end of row marker, so this buffer is always large enough to cover one row.
-			uint8 buf[7 * MAX_BASECHANNELS + 1];
+			// Maximum 8 bytes per cell, plus end of row marker, so this buffer is always large enough to cover one row.
+			uint8 buf[8 * MAX_BASECHANNELS + 1];
 			const ModCommand *m = Patterns[pat].GetpModCommand(row, 0);
 
 			for(CHANNELINDEX ch = 0; ch < maxChannels; ch++, m++)
@@ -1660,9 +1686,10 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 				uint8 param = m->param;
 				uint8 vol = 0xFF;
 				uint8 note = m->note;
+				uint8 offset = m->offset;
 				if (note != NOTE_NONE) b |= 1;
 				if (m->IsNote()) note -= NOTE_MIN;
-				if (note == NOTE_FADE && GetType() != MOD_TYPE_MPT) note = 0xF6;
+				if (note == NOTE_FADE && !(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))) note = 0xF6;
 				if (m->instr) b |= 2;
 				if (m->volcmd != VOLCMD_NONE)
 				{
@@ -1706,7 +1733,7 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 					// Same note ?
 					if (b & 1)
 					{
-						if ((note == lastvalue[ch].note) && (lastvalue[ch].volcmd & 1))
+						if ((note == lastvalue[ch].note) && ((GetType() != MOD_TYPE_UPT) || offset == lastvalue[ch].offset) && (lastvalue[ch].volcmd & 1))
 						{
 							b &= ~1;
 							b |= 0x10;
@@ -1714,6 +1741,10 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 						{
 							lastvalue[ch].note = note;
 							lastvalue[ch].volcmd |= 1;
+							if (GetType() == MOD_TYPE_UPT)
+							{
+								lastvalue[ch].offset = offset;
+							}
 						}
 					}
 					// Same instrument ?
@@ -1765,7 +1796,14 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 					{
 						buf[len++] = static_cast<uint8>(ch + 1);
 					}
-					if (b & 1) buf[len++] = note;
+					if (b & 1)
+					{
+						buf[len++] = note;
+						if (GetType() == MOD_TYPE_UPT)
+						{
+							buf[len++] = offset;
+						}
+					}
 					if (b & 2) buf[len++] = m->instr;
 					if (b & 4) buf[len++] = vol;
 					if (b & 8)
@@ -1806,7 +1844,7 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 #endif // MODPLUG_TRACKER
 		// Old MPT, DUMB and probably other libraries will only consider the IT2.15 compression flag if the header version also indicates IT2.15.
 		// MilkyTracker <= 0.90.85 assumes IT2.15 compression with cmwt == 0x215, ignoring the delta flag completely.
-		itss.ConvertToIT(sample, GetType(), compress, itHeader.cmwt >= 0x215, GetType() == MOD_TYPE_MPT);
+		itss.ConvertToIT(sample, GetType(), compress, itHeader.cmwt >= 0x215, GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT));
 		const bool isExternal = itss.cvt == ITSample::cvtExternalSample;
 
 		mpt::String::WriteBuf(mpt::String::nullTerminated, itss.name) = m_szNames[smp];
@@ -2224,7 +2262,7 @@ void CSoundFile::SaveExtendedSongProperties(std::ostream &f) const
 	}
 
 	// Sample cues
-	if(GetType() == MOD_TYPE_MPT)
+	if(GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 	{
 		for(SAMPLEINDEX smp = 1; smp <= GetNumSamples(); smp++)
 		{

@@ -95,13 +95,13 @@ void CSoundFile::S3MSaveConvert(uint8 &command, uint8 &param, bool toIT, bool co
 	case CMD_GLOBALVOLSLIDE:  command = 'W'; break;
 	case CMD_PANNING8:
 		command = 'X';
-		if(toIT && !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM | MOD_TYPE_MOD)))
+		if(toIT && !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM | MOD_TYPE_MOD)))
 		{
 			if (param == 0xA4) { command = 'S'; param = 0x91; }
 			else if (param == 0x80) { param = 0xFF; }
 			else if (param < 0x80) { param <<= 1; }
 			else command = 0;
-		} else if (!toIT && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM | MOD_TYPE_MOD)))
+		} else if (!toIT && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT | MOD_TYPE_XM | MOD_TYPE_MOD)))
 		{
 			param >>= 1;
 		}

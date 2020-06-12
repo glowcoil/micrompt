@@ -164,6 +164,7 @@ bool CAutoSaver::SaveSingleFile(CModDoc &modDoc)
 	{
 		switch(modDoc.GetSoundFile().GetBestSaveFormat())
 		{
+		case MOD_TYPE_UPT: success = sndFile.SaveIT(f, fileName); break;
 		case MOD_TYPE_MOD: success = sndFile.SaveMod(f); break;
 		case MOD_TYPE_S3M: success = sndFile.SaveS3M(f); break;
 		case MOD_TYPE_XM:  success = sndFile.SaveXM(f); break;

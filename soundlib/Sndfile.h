@@ -743,7 +743,7 @@ public:
 	void InitAmigaResampler();
 
 	void InitOPL();
-	static constexpr bool SupportsOPL(MODTYPE type) { return type & (MOD_TYPE_S3M | MOD_TYPE_MPT); }
+	static constexpr bool SupportsOPL(MODTYPE type) { return type & (MOD_TYPE_S3M | MOD_TYPE_MPT | MOD_TYPE_UPT); }
 	bool SupportsOPL() const noexcept { return SupportsOPL(m_nType); }
 
 	static ProbeResult ProbeFileHeaderMMCMP(MemoryFileReader file, const uint64 *pfilesize);

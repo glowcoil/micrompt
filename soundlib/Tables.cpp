@@ -50,6 +50,7 @@ struct ModFormatInfo
 // Note: Formats with identical extensions must be grouped together.
 static constexpr ModFormatInfo modFormatInfo[] =
 {
+    { MOD_TYPE_UPT,  UL_("MicroPlug Tracker"),          "uptm" },
 	{ MOD_TYPE_MPT,  UL_("OpenMPT"),                    "mptm" },
 	{ MOD_TYPE_MOD,  UL_("ProTracker"),                 "mod" },
 	{ MOD_TYPE_S3M,  UL_("ScreamTracker 3"),            "s3m" },
@@ -106,6 +107,7 @@ static constexpr ModFormatInfo modFormatInfo[] =
 	{ MOD_TYPE_XM,   UL_("Compressed FastTracker 2"),   "xmz" },
 	{ MOD_TYPE_IT,   UL_("Compressed Impulse Tracker"), "itz" },
 	{ MOD_TYPE_MPT,  UL_("Compressed OpenMPT"),         "mptmz" },
+	{ MOD_TYPE_UPT,  UL_("Compressed MicroPlug"),       "uptmz" },
 #endif
 };
 

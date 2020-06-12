@@ -372,7 +372,7 @@ void CViewGlobals::UpdateView(UpdateHint hint, CObject *pObject)
 				SetDlgItemText(IDC_TEXT1 + ichn, _T(""));
 
 			// Enable/Disable controls for this channel
-			BOOL bIT = ((bEnable) && (sndFile.m_nType & (MOD_TYPE_IT|MOD_TYPE_MPT)));
+			BOOL bIT = ((bEnable) && (sndFile.m_nType & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)));
 			GetDlgItem(IDC_CHECK1 + ichn * 2)->EnableWindow(bEnable);
 			GetDlgItem(IDC_CHECK2 + ichn * 2)->EnableWindow(bIT);
 
@@ -383,7 +383,7 @@ void CViewGlobals::UpdateView(UpdateHint hint, CObject *pObject)
 			m_spinPan[ichn].EnableWindow(bEnable && !(sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_MOD)));
 			GetDlgItem(IDC_EDIT1 + ichn * 2)->EnableWindow(bIT);	// channel vol
 			GetDlgItem(IDC_EDIT2 + ichn * 2)->EnableWindow(bEnable && !(sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_MOD)));	// channel pan
-			GetDlgItem(IDC_EDIT9 + ichn)->EnableWindow(((bEnable) && (sndFile.m_nType & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT))));	// channel name
+			GetDlgItem(IDC_EDIT9 + ichn)->EnableWindow(((bEnable) && (sndFile.m_nType & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT))));	// channel name
 			m_CbnEffects[ichn].EnableWindow(bEnable & (sndFile.GetModSpecifications().supportsPlugins ? TRUE : FALSE));
 		}
 		UnlockControls();
@@ -814,7 +814,7 @@ void CViewGlobals::OnEditName(const CHANNELINDEX chnMod4, const UINT itemID)
 		CString tmp;
 		GetDlgItemText(itemID, tmp);
 		const std::string s = mpt::ToCharset(sndFile.GetCharsetInternal(), tmp);
-		if ((sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT)) && (nChn < sndFile.GetNumChannels()) && (s != sndFile.ChnSettings[nChn].szName))
+		if ((sndFile.GetType() & (MOD_TYPE_XM|MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) && (nChn < sndFile.GetNumChannels()) && (s != sndFile.ChnSettings[nChn].szName))
 		{
 			sndFile.ChnSettings[nChn].szName = s;
 			pModDoc->SetModified();

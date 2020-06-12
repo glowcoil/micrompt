@@ -328,7 +328,7 @@ uint32 ITInstrument::ConvertToMPT(ModInstrument &mptIns, MODTYPE modFormat) cons
 	}
 
 	// Envelope point count. Limited to 25 in IT format.
-	const uint8 maxNodes = (modFormat & MOD_TYPE_MPT) ? MAX_ENVPOINTS : 25;
+	const uint8 maxNodes = (modFormat & (MOD_TYPE_MPT | MOD_TYPE_UPT)) ? MAX_ENVPOINTS : 25;
 
 	// Volume Envelope
 	volenv.ConvertToMPT(mptIns.VolEnv, 0, maxNodes);

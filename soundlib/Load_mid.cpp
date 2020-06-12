@@ -1267,7 +1267,7 @@ bool CSoundFile::ReadMID(FileReader &file, ModLoadingFlags loadFlags)
 			}
 		}
 	}
-	ChangeModTypeTo(MOD_TYPE_MPT);
+	ChangeModTypeTo(MOD_TYPE_UPT);
 	const MidiLibrary &midiLib = CTrackApp::GetMidiLibrary();
 	mpt::PathString cachedBankName;
 	// Load Instruments

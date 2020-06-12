@@ -397,6 +397,7 @@ MODTYPE CTrackApp::m_nDefaultDocType = MOD_TYPE_IT;
 BEGIN_MESSAGE_MAP(CTrackApp, CWinApp)
 	//{{AFX_MSG_MAP(CTrackApp)
 	ON_COMMAND(ID_FILE_NEW,		&CTrackApp::OnFileNew)
+	ON_COMMAND(ID_FILE_NEWUPT,	&CTrackApp::OnFileNewUPT)
 	ON_COMMAND(ID_FILE_NEWMOD,	&CTrackApp::OnFileNewMOD)
 	ON_COMMAND(ID_FILE_NEWS3M,	&CTrackApp::OnFileNewS3M)
 	ON_COMMAND(ID_FILE_NEWXM,	&CTrackApp::OnFileNewXM)
@@ -585,13 +586,13 @@ void CTrackApp::SetupPaths(bool overridePortable)
 			|| (SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, dir) == S_OK))
 		{
 			// Store our app settings in %APPDATA% or "My Documents"
-			configPathUser = mpt::PathString::FromNative(dir) + P_("\\OpenMPT\\");
+			configPathUser = mpt::PathString::FromNative(dir) + P_("\\MicroPlug\\");
 		}
 	}
 
 	// Check if the user has configured portable mode.
 	bool configInstallPortable = false;
-	mpt::PathString portableFlagFilename = (configPathPortable + P_("OpenMPT.portable"));
+	mpt::PathString portableFlagFilename = (configPathPortable + P_("MicroPlug.portable"));
 	bool configPortableFlag = portableFlagFilename.IsFile();
 	configInstallPortable = configInstallPortable || configPortableFlag;
 	// before 1.29.00.13:
@@ -1401,6 +1402,7 @@ void CTrackApp::OpenModulesDialog(std::vector<mpt::PathString> &files, const mpt
 		"|"
 		"Compressed Modules (*.mdz;*.s3z;*.xmz;*.itz;*.mo3)|*.mdz;*.s3z;*.xmz;*.itz;*.mdr;*.zip;*.rar;*.lha;*.pma;*.lzs;*.gz;*.mo3;*.oxm"
 		"|"
+		"MicroPlug Modules (*.uptm)|*.uptm;*.uptmz|"
 		"ProTracker Modules (*.mod,*.nst)|*.mod;mod.*;*.mdz;*.nst;*.m15;*.stk;*.pt36|"
 		"ScreamTracker Modules (*.s3m,*.stm)|*.s3m;*.stm;*.s3z|"
 		"FastTracker Modules (*.xm)|*.xm;*.xmz|"

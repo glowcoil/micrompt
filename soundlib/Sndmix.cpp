@@ -892,7 +892,7 @@ void CSoundFile::ProcessTremolo(ModChannel &chn, int &vol) const
 				vol -= (vol * chn.nTremoloDepth * (64 - delta)) / (128 * 64);
 			}
 		}
-		if(!m_SongFlags[SONG_FIRSTTICK] || ((GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]))
+		if(!m_SongFlags[SONG_FIRSTTICK] || ((GetType() & (MOD_TYPE_IT|MOD_TYPE_MPT|MOD_TYPE_UPT)) && !m_SongFlags[SONG_ITOLDEFFECTS]))
 		{
 			// IT compatibility: IT has its own, more precise tables
 			if(m_playBehaviour[kITVibratoTremoloPanbrello])
@@ -959,7 +959,7 @@ void CSoundFile::ProcessTremor(CHANNELINDEX nChn, int &vol)
 		{
 			uint8 ontime = chn.nTremorParam >> 4;
 			uint8 n = ontime + (chn.nTremorParam & 0x0F);	// Total tremor cycle time (On + Off)
-			if ((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))) || m_SongFlags[SONG_ITOLDEFFECTS])
+			if ((!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) || m_SongFlags[SONG_ITOLDEFFECTS])
 			{
 				n += 2;
 				ontime++;
@@ -1279,12 +1279,12 @@ void CSoundFile::IncrementEnvelopePosition(ModChannel &chn, EnvelopeType envType
 	if(envType == ENV_VOLUME && endReached)
 	{
 		// Special handling for volume envelopes at end of envelope
-		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) || (chn.dwFlags[CHN_KEYOFF] && GetType() != MOD_TYPE_MDL))
+		if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) || (chn.dwFlags[CHN_KEYOFF] && GetType() != MOD_TYPE_MDL))
 		{
 			chn.dwFlags.set(CHN_NOTEFADE);
 		}
 
-		if(insEnv.back().value == 0 && (chn.nMasterChn > 0 || (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))))
+		if(insEnv.back().value == 0 && (chn.nMasterChn > 0 || (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))))
 		{
 			// Stop channel if the last envelope node is silent anyway.
 			chn.dwFlags.set(CHN_NOTEFADE);
@@ -1569,7 +1569,7 @@ void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYP
 
 	if(chn.dwFlags[CHN_VIBRATO])
 	{
-		const bool advancePosition = !m_SongFlags[SONG_FIRSTTICK] || ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && !(m_SongFlags[SONG_ITOLDEFFECTS]));
+		const bool advancePosition = !m_SongFlags[SONG_FIRSTTICK] || ((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && !(m_SongFlags[SONG_ITOLDEFFECTS]));
 
 		if(GetType() == MOD_TYPE_669)
 		{
@@ -1635,7 +1635,7 @@ void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYP
 					vdepth = 8;
 				else if(GetType() & (MOD_TYPE_DBM | MOD_TYPE_MTM))
 					vdepth = 7;
-				else if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)) && !m_SongFlags[SONG_ITOLDEFFECTS])
+				else if((GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)) && !m_SongFlags[SONG_ITOLDEFFECTS])
 					vdepth = 7;
 				else
 					vdepth = 6;
@@ -1788,13 +1788,13 @@ void CSoundFile::ProcessSampleAutoVibrato(ModChannel &chn, int &period, Tuning::
 		} else
 		{
 			// MPT's autovibrato code
-			if (pSmp->nVibSweep == 0 && !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT)))
+			if (pSmp->nVibSweep == 0 && !(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT)))
 			{
 				chn.nAutoVibDepth = pSmp->nVibDepth * 256;
 			} else
 			{
 				// Calculate current autovibrato depth using vibsweep
-				if (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+				if (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 				{
 					chn.nAutoVibDepth += pSmp->nVibSweep * 2u;
 				} else
@@ -2216,7 +2216,7 @@ bool CSoundFile::ReadNote()
 				// Test case: VibratoDouble.xm
 				if(!m_SongFlags[SONG_FIRSTTICK])
 					chn.nVibratoPos += chn.nVibratoSpeed;
-			} else if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT))
+			} else if(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))
 			{
 				// IT Compatibility: Vibrato should be applied twice if both volume-colum and effect column vibrato is present.
 				// Volume column vibrato parameter has precedence if non-zero.

@@ -94,6 +94,7 @@ BOOL COptionsGeneral::OnInitDialog()
 		const TCHAR *str;
 	} formats[] =
 	{
+		{ MOD_TYPE_UPT, _T("UPTM") },
 		{ MOD_TYPE_MOD, _T("MOD") },
 		{ MOD_TYPE_XM, _T("XM") },
 		{ MOD_TYPE_S3M, _T("S3M") },

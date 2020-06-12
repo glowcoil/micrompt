@@ -189,7 +189,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	, commentsFont(conf, U_("Display"), U_("Comments Font"), FontSetting(U_("Courier New"), 120))
 	// Misc
 	, ShowSettingsOnNewVersion(conf, U_("Misc"), U_("ShowSettingsOnNewVersion"), true)
-	, defaultModType(conf, U_("Misc"), U_("DefaultModType"), MOD_TYPE_IT)
+	, defaultModType(conf, U_("Misc"), U_("DefaultModType"), MOD_TYPE_UPT)
 	, defaultNewFileAction(conf, U_("Misc"), U_("DefaultNewFileAction"), nfDefaultFormat)
 	, DefaultPlugVolumeHandling(conf, U_("Misc"), U_("DefaultPlugVolumeHandling"), PLUGIN_VOLUMEHANDLING_IGNORE)
 	, autoApplySmoothFT2Ramping(conf, U_("Misc"), U_("SmoothFT2Ramping"), false)
@@ -595,7 +595,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	// Misc
 	if(defaultModType == MOD_TYPE_NONE)
 	{
-		defaultModType = MOD_TYPE_IT;
+		defaultModType = MOD_TYPE_UPT;
 	}
 
 	// MIDI Settings

@@ -84,7 +84,7 @@ void ModSample::Convert(MODTYPE fromType, MODTYPE toType)
 
 
 	// Autovibrato sweep setting is inverse in XM (0 = "no sweep") and IT (0 = "no vibrato")
-	if(((fromType & MOD_TYPE_XM) && (toType & (MOD_TYPE_IT | MOD_TYPE_MPT))) || ((toType & MOD_TYPE_XM) && (fromType & (MOD_TYPE_IT | MOD_TYPE_MPT))))
+	if(((fromType & MOD_TYPE_XM) && (toType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))) || ((toType & MOD_TYPE_XM) && (fromType & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_UPT))))
 	{
 		if(nVibRate != 0 && nVibDepth != 0)
 		{
@@ -104,7 +104,7 @@ void ModSample::Convert(MODTYPE fromType, MODTYPE toType)
 	}
 
 	// No external samples in formats other than MPTM.
-	if(toType != MOD_TYPE_MPT)
+	if(!(toType & (MOD_TYPE_MPT | MOD_TYPE_UPT)))
 	{
 		uFlags.reset(SMP_KEEPONDISK);
 	}

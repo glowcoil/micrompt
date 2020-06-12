@@ -984,6 +984,7 @@ PlayBehaviourSet CSoundFile::GetSupportedPlaybackBehaviour(MODTYPE type)
 	switch(type)
 	{
 	case MOD_TYPE_MPT:
+	case MOD_TYPE_UPT:
 	case MOD_TYPE_IT:
 		playBehaviour.set(MSF_COMPATIBLE_PLAY);
 		playBehaviour.set(kHertzInLinearMode);
@@ -1034,7 +1035,7 @@ PlayBehaviourSet CSoundFile::GetSupportedPlaybackBehaviour(MODTYPE type)
 		playBehaviour.set(kRowDelayWithNoteDelay);
 		playBehaviour.set(kITInstrWithNoteOffOldEffects);
 		playBehaviour.set(kITDoNotOverrideChannelPan);
-		if(type == MOD_TYPE_MPT)
+		if(type & (MOD_TYPE_MPT | MOD_TYPE_UPT))
 		{
 			playBehaviour.set(kOPLFlexibleNoteOff);
 		}
@@ -1123,6 +1124,7 @@ PlayBehaviourSet CSoundFile::GetDefaultPlaybackBehaviour(MODTYPE type)
 	switch(type)
 	{
 	case MOD_TYPE_MPT:
+	case MOD_TYPE_UPT:
 		playBehaviour.set(kHertzInLinearMode);
 		playBehaviour.set(kPerChannelGlobalVolSlide);
 		playBehaviour.set(kPanOverride);
@@ -1180,6 +1182,7 @@ MODTYPE CSoundFile::GetBestSaveFormat() const
 	case MOD_TYPE_XM:
 	case MOD_TYPE_IT:
 	case MOD_TYPE_MPT:
+	case MOD_TYPE_UPT:
 		return GetType();
 	case MOD_TYPE_AMF0:
 	case MOD_TYPE_DIGI:
@@ -1454,7 +1457,7 @@ std::unique_ptr<CTuning> CSoundFile::CreateTuning12TET(const mpt::ustring &name)
 mpt::ustring CSoundFile::GetNoteName(const ModCommand::NOTE note, const INSTRUMENTINDEX inst) const
 {
 	// For MPTM instruments with custom tuning, find the appropriate note name. Else, use default note names.
-	if(ModCommand::IsNote(note) && GetType() == MOD_TYPE_MPT && inst >= 1 && inst <= GetNumInstruments() && Instruments[inst] && Instruments[inst]->pTuning)
+	if(ModCommand::IsNote(note) && GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && inst >= 1 && inst <= GetNumInstruments() && Instruments[inst] && Instruments[inst]->pTuning)
 	{
 		return Instruments[inst]->pTuning->GetNoteName(note - NOTE_MIDDLEC);
 	} else
@@ -1512,6 +1515,10 @@ void CSoundFile::SetModSpecsPointer(const CModSpecifications*& pModSpecs, const 
 {
 	switch(type)
 	{
+		case MOD_TYPE_UPT:
+			pModSpecs = &ModSpecs::uptm;
+		break;
+
 		case MOD_TYPE_MPT:
 			pModSpecs = &ModSpecs::mptm;
 		break;
@@ -1569,7 +1576,7 @@ void CSoundFile::ChangeModTypeTo(const MODTYPE newType)
 		if(!oldAllowedFlags[i]) m_playBehaviour.set(i, newDefaultFlags[i]);
 	}
 	// Special case for OPL behaviour when converting from S3M to MPTM to retain S3M-like note-off behaviour
-	if(oldType == MOD_TYPE_S3M && newType == MOD_TYPE_MPT && m_opl)
+	if(oldType == MOD_TYPE_S3M && newType & (MOD_TYPE_MPT | MOD_TYPE_UPT) && m_opl)
 		m_playBehaviour.reset(kOPLFlexibleNoteOff);
 
 	Order.OnModTypeChanged(oldType);
@@ -1587,6 +1594,7 @@ ModMessageHeuristicOrder CSoundFile::GetMessageHeuristic() const
 	switch(GetType())
 	{
 	case MOD_TYPE_MPT:
+	case MOD_TYPE_UPT:
 		result = ModMessageHeuristicOrder::Samples;
 		break;
 	case MOD_TYPE_IT:

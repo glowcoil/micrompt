@@ -48,7 +48,7 @@ bool ModSequence::operator== (const ModSequence &other) const
 
 bool ModSequence::NeedsExtraDatafield() const
 {
-	return (m_sndFile.GetType() == MOD_TYPE_MPT && m_sndFile.Patterns.GetNumPatterns() > 0xFD);
+	return (m_sndFile.GetType() & (MOD_TYPE_MPT | MOD_TYPE_UPT) && m_sndFile.Patterns.GetNumPatterns() > 0xFD);
 }
 
 
