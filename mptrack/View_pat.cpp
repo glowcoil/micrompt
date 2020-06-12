@@ -827,6 +827,11 @@ void CViewPattern::OnGrowSelection()
 					blank->note = NOTE_NONE;
 					break;
 
+				case PatternCursor::offsetColumn:
+					dest->offset = src->offset;
+					blank->offset = 0;
+					break;
+
 				case PatternCursor::instrColumn:
 					dest->instr = src->instr;
 					blank->instr = 0;
@@ -934,6 +939,10 @@ void CViewPattern::OnShrinkSelection()
 					dest->note = src.note;
 					break;
 
+				case PatternCursor::offsetColumn:
+					dest->offset = src.offset;
+					break;
+
 				case PatternCursor::instrColumn:
 					dest->instr = src.instr;
 					break;
@@ -1018,6 +1027,13 @@ void CViewPattern::OnClearSelection(bool ITStyle, RowMask rm)  //Default RowMask
 						if(ITStyle)
 							m.instr = 0;
 					}
+				}
+				break;
+
+			case PatternCursor::offsetColumn:  // Clear offset
+				if (rm.offset)
+				{
+					m.offset = 0;
 				}
 				break;
 
@@ -2176,8 +2192,10 @@ void CViewPattern::OnCursorCopy()
 	switch(m_Cursor.GetColumnType())
 	{
 	case PatternCursor::noteColumn:
+	case PatternCursor::offsetColumn:
 	case PatternCursor::instrColumn:
 		m_cmdOld.note = m.note;
+		m_cmdOld.offset = m.offset;
 		m_cmdOld.instr = m.instr;
 		SendCtrlMessage(CTRLMSG_SETCURRENTINSTRUMENT, m_cmdOld.instr);
 		break;
@@ -2212,7 +2230,9 @@ void CViewPattern::OnCursorPaste()
 	switch(column)
 	{
 	case PatternCursor::noteColumn:
+	case PatternCursor::offsetColumn:
 		m.note = m_cmdOld.note;
+		m.offset = m_cmdOld.offset;
 		[[fallthrough]];
 	case PatternCursor::instrColumn:
 		m.instr = m_cmdOld.instr;
@@ -2885,6 +2905,9 @@ void CViewPattern::OnDropSelection()
 				{
 				case PatternCursor::noteColumn:
 					p->note = src.note;
+					break;
+				case PatternCursor::offsetColumn:
+					p->offset = src.offset;
 					break;
 				case PatternCursor::instrColumn:
 					p->instr = src.instr;
@@ -5860,6 +5883,10 @@ void CViewPattern::OnClearField(const RowMask &mask, bool step, bool ITStyle)
 			}
 		}
 	}
+	if (mask.offset)
+	{
+		target.offset = 0;
+	}
 	if(mask.instrument)
 	{
 		// Clear instrument
@@ -6930,6 +6957,9 @@ void CViewPattern::JumpToPrevOrNextEntry(bool nextEntry)
 			{
 			case PatternCursor::noteColumn:
 				found = m.note != NOTE_NONE;
+				break;
+			case PatternCursor::offsetColumn:
+				found = m.offset != 0;
 				break;
 			case PatternCursor::instrColumn:
 				found = m.instr != 0;

@@ -65,6 +65,7 @@ static constexpr ROWINDEX MAX_SPACING = MAX_PATTERN_ROWS;
 struct RowMask
 {
 	bool note : 1;
+	bool offset : 1;
 	bool instrument : 1;
 	bool volume : 1;
 	bool command : 1;
@@ -73,13 +74,14 @@ struct RowMask
 	// Default row mask (all rows are selected)
 	RowMask()
 	{
-		note = instrument = volume = command = parameter = true;
+		note = offset = instrument = volume = command = parameter = true;
 	};
 
 	// Construct mask from list
-	RowMask(bool n, bool i, bool v, bool c, bool p)
+	RowMask(bool n, bool o, bool i, bool v, bool c, bool p)
 	{
 		note = n;
+		offset = o;
 		instrument = i;
 		volume = v;
 		command = c;
@@ -92,6 +94,7 @@ struct RowMask
 		const PatternCursor::Columns column = cursor.GetColumnType();
 
 		note = (column == PatternCursor::noteColumn);
+		offset = (column == PatternCursor::offsetColumn);
 		instrument = (column == PatternCursor::instrColumn);
 		volume = (column == PatternCursor::volumeColumn);
 		command = (column == PatternCursor::effectColumn);
@@ -100,7 +103,7 @@ struct RowMask
 
 	void Clear()
 	{
-		note = instrument = volume = command = parameter = false;
+		note = offset = instrument = volume = command = parameter = false;
 	}
 };
 
