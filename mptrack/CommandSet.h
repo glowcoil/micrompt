@@ -49,6 +49,9 @@ enum InputTargetContext : int8
 	kCtxCtrlComments,
 	kCtxCtrlOrderlist,
 	kCtxChannelSettings,
+
+	kCtxViewPatternsOffset,
+
 	kCtxMaxInputContexts
 };
 

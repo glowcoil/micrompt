@@ -316,6 +316,7 @@ public:
 	void DrawLetter(int x, int y, char letter, int sizex = 10, int ofsx = 0);
 	void DrawLetter(int x, int y, wchar_t letter, int sizex = 10, int ofsx = 0);
 	void DrawNote(int x, int y, UINT note, CTuning *pTuning = nullptr);
+	void DrawOffset(int x, int y, int32 offset);
 	void DrawInstrument(int x, int y, UINT instr);
 	void DrawVolumeCommand(int x, int y, const ModCommand &mc, bool drawDefaultVolume);
 	void DrawChannelVUMeter(HDC hdc, int x, int y, UINT nChn);

@@ -47,13 +47,14 @@ enum
 {
 	COLUMN_BITS_NONE          = 0x00,
 	COLUMN_BITS_NOTE          = 0x01,
-	COLUMN_BITS_INSTRUMENT    = 0x02,
-	COLUMN_BITS_VOLUME        = 0x04,
-	COLUMN_BITS_FXCMD         = 0x08,
-	COLUMN_BITS_FXPARAM       = 0x10,
-	COLUMN_BITS_FXCMDANDPARAM = 0x18,
-	COLUMN_BITS_ALLCOLUMNS    = 0x1F,
-	COLUMN_BITS_UNKNOWN       = 0x20,  // Appears to be unused
+	COLUMN_BITS_OFFSET        = 0x02,
+	COLUMN_BITS_INSTRUMENT    = 0x04,
+	COLUMN_BITS_VOLUME        = 0x08,
+	COLUMN_BITS_FXCMD         = 0x10,
+	COLUMN_BITS_FXPARAM       = 0x20,
+	COLUMN_BITS_FXCMDANDPARAM = 0x30,
+	COLUMN_BITS_ALLCOLUMNS    = 0x3F,
+	//COLUMN_BITS_UNKNOWN       = 0x20,  // Appears to be unused
 	COLUMN_BITS_ALL           = 0x3F,
 	COLUMN_BITS_SKIP          = 0x40,
 	COLUMN_BITS_INVISIBLE     = 0x80,
@@ -128,10 +129,10 @@ bool CViewPattern::UpdateSizes()
 	m_szPluginHeader.cx = 0;
 	m_szPluginHeader.cy = m_Status[psShowPluginNames] ? MulDiv(PLUGNAME_HEIGHT, m_nDPIy, 96) : 0;
 	if(m_Status[psShowVUMeters]) m_szHeader.cy += VUMETERS_HEIGHT;
-	m_szCell.cx = 4 + pfnt->nEltWidths[0];
-	if (m_nDetailLevel >= PatternCursor::instrColumn) m_szCell.cx += pfnt->nEltWidths[1];
-	if (m_nDetailLevel >= PatternCursor::volumeColumn) m_szCell.cx += pfnt->nEltWidths[2];
-	if (m_nDetailLevel >= PatternCursor::effectColumn) m_szCell.cx += pfnt->nEltWidths[3] + pfnt->nEltWidths[4];
+	m_szCell.cx = 4 + pfnt->nEltWidths[0] + pfnt->nEltWidths[1];
+	if (m_nDetailLevel >= PatternCursor::instrColumn) m_szCell.cx += pfnt->nEltWidths[2];
+	if (m_nDetailLevel >= PatternCursor::volumeColumn) m_szCell.cx += pfnt->nEltWidths[3];
+	if (m_nDetailLevel >= PatternCursor::effectColumn) m_szCell.cx += pfnt->nEltWidths[4] + pfnt->nEltWidths[5];
 	m_szCell.cy = pfnt->nHeight;
 
 	m_szHeader.cx = MulDiv(m_szHeader.cx, m_nDPIx, 96);
@@ -431,6 +432,22 @@ void CViewPattern::DrawNote(int x, int y, UINT note, CTuning* pTuning)
 }
 
 
+void CViewPattern::DrawOffset(int x, int y, int32 offset)
+{
+	const PATTERNFONT *pfnt = PatternFont::currentFont;
+	if(offset)
+	{
+		UINT dx = pfnt->nInstrHiWidth;
+		m_Dib.TextBlt(x, y, dx, pfnt->spacingY, pfnt->nNumX + pfnt->nInstrOfs, pfnt->nNumY + (offset / 10) * pfnt->spacingY, pfnt->dib);
+		m_Dib.TextBlt(x + dx, y, pfnt->nEltWidths[1] - dx, pfnt->spacingY, pfnt->nNumX + pfnt->paramLoMargin, pfnt->nNumY + (offset % 10) * pfnt->spacingY, pfnt->dib);
+	} else
+	{
+		m_Dib.TextBlt(x, y, pfnt->nEltWidths[1], pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
+	}
+	DrawPadding(m_Dib, pfnt, x, y, 1);
+}
+
+
 void CViewPattern::DrawInstrument(int x, int y, UINT instr)
 {
 	const PATTERNFONT *pfnt = PatternFont::currentFont;
@@ -444,10 +461,10 @@ void CViewPattern::DrawInstrument(int x, int y, UINT instr)
 		{
 			m_Dib.TextBlt(x, y, dx, pfnt->spacingY, pfnt->nNum10X+pfnt->nInstr10Ofs, pfnt->nNum10Y+((instr-100) / 10)*pfnt->spacingY, pfnt->dib);
 		}
-		m_Dib.TextBlt(x+dx, y, pfnt->nEltWidths[1]-dx, pfnt->spacingY, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(instr % 10)*pfnt->spacingY, pfnt->dib);
+		m_Dib.TextBlt(x+dx, y, pfnt->nEltWidths[2]-dx, pfnt->spacingY, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(instr % 10)*pfnt->spacingY, pfnt->dib);
 	} else
 	{
-		m_Dib.TextBlt(x, y, pfnt->nEltWidths[1], pfnt->spacingY, pfnt->nClrX+pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
+		m_Dib.TextBlt(x, y, pfnt->nEltWidths[2], pfnt->spacingY, pfnt->nClrX+pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
 	}
 	DrawPadding(m_Dib, pfnt, x, y, 1);
 }
@@ -466,7 +483,7 @@ void CViewPattern::DrawVolumeCommand(int x, int y, const ModCommand &mc, bool dr
 							pfnt->nNumX, pfnt->nNumY+(val / 100)*pfnt->spacingY, pfnt->dib);
 		m_Dib.TextBlt(x+pfnt->nVolCmdWidth, y, pfnt->nVolHiWidth, pfnt->spacingY,
 							pfnt->nNumX, pfnt->nNumY+((val / 10)%10)*pfnt->spacingY, pfnt->dib);
-		m_Dib.TextBlt(x+pfnt->nVolCmdWidth+pfnt->nVolHiWidth, y, pfnt->nEltWidths[2]-(pfnt->nVolCmdWidth+pfnt->nVolHiWidth), pfnt->spacingY,
+		m_Dib.TextBlt(x+pfnt->nVolCmdWidth+pfnt->nVolHiWidth, y, pfnt->nEltWidths[3]-(pfnt->nVolCmdWidth+pfnt->nVolHiWidth), pfnt->spacingY,
 							pfnt->nNumX, pfnt->nNumY+(val % 10)*pfnt->spacingY, pfnt->dib);
 	} else
 	{
@@ -486,12 +503,12 @@ void CViewPattern::DrawVolumeCommand(int x, int y, const ModCommand &mc, bool dr
 							pfnt->nVolX, pfnt->nVolY + volcmd * pfnt->spacingY, pfnt->dib);
 			m_Dib.TextBlt(x+pfnt->nVolCmdWidth, y, pfnt->nVolHiWidth, pfnt->spacingY,
 							pfnt->nNumX, pfnt->nNumY + (vol / 10) * pfnt->spacingY, pfnt->dib);
-			m_Dib.TextBlt(x+pfnt->nVolCmdWidth + pfnt->nVolHiWidth, y, pfnt->nEltWidths[2] - (pfnt->nVolCmdWidth + pfnt->nVolHiWidth), pfnt->spacingY,
+			m_Dib.TextBlt(x+pfnt->nVolCmdWidth + pfnt->nVolHiWidth, y, pfnt->nEltWidths[3] - (pfnt->nVolCmdWidth + pfnt->nVolHiWidth), pfnt->spacingY,
 							pfnt->nNumX, pfnt->nNumY + (vol % 10) * pfnt->spacingY, pfnt->dib);
 		} else
 		{
-			int srcx = pfnt->nEltWidths[0] + pfnt->nEltWidths[1];
-			m_Dib.TextBlt(x, y, pfnt->nEltWidths[2], pfnt->spacingY, pfnt->nClrX+srcx, pfnt->nClrY, pfnt->dib);
+			int srcx = pfnt->nEltWidths[0] + pfnt->nEltWidths[2];
+			m_Dib.TextBlt(x, y, pfnt->nEltWidths[3], pfnt->spacingY, pfnt->nClrX+srcx, pfnt->nClrY, pfnt->dib);
 		}
 	}
 	DrawPadding(m_Dib, pfnt, x, y, 2);
@@ -924,29 +941,29 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 			// Should empty volume commands be replaced with a volume command showing the default volume?
 			const bool drawDefaultVolume = DrawDefaultVolume(m);
 
-			DWORD dwSpeedUpMask = 0;
-			if (useSpeedUpMask && (selectedCols[col] & COLUMN_BITS_SKIP) && (row))
-			{
-				const ModCommand *mold = m - ncols;
-				const bool drawOldDefaultVolume = DrawDefaultVolume(mold);
+			//DWORD dwSpeedUpMask = 0;
+			//if (useSpeedUpMask && (selectedCols[col] & COLUMN_BITS_SKIP) && (row))
+			//{
+			//	const ModCommand *mold = m - ncols;
+			//	const bool drawOldDefaultVolume = DrawDefaultVolume(mold);
 
-				if (m->note == mold->note) dwSpeedUpMask |= COLUMN_BITS_NOTE;
-				if ((m->instr == mold->instr) || (m_nDetailLevel < PatternCursor::instrColumn)) dwSpeedUpMask |= COLUMN_BITS_INSTRUMENT;
-				if ( m->IsPcNote() || mold->IsPcNote() )
-				{
-					// Handle speedup mask for PC notes.
-					if(m->note == mold->note)
-					{
-						if(m->GetValueVolCol() == mold->GetValueVolCol() || (m_nDetailLevel < PatternCursor::volumeColumn)) dwSpeedUpMask |= COLUMN_BITS_VOLUME;
-						if(m->GetValueEffectCol() == mold->GetValueEffectCol() || (m_nDetailLevel < PatternCursor::effectColumn)) dwSpeedUpMask |= COLUMN_BITS_FXCMDANDPARAM;
-					}
-				} else
-				{
-					if ((m->volcmd == mold->volcmd && (m->volcmd == VOLCMD_NONE || m->vol == mold->vol) && !drawDefaultVolume && !drawOldDefaultVolume) || (m_nDetailLevel < PatternCursor::volumeColumn)) dwSpeedUpMask |= COLUMN_BITS_VOLUME;
-					if ((m->command == mold->command) || (m_nDetailLevel < PatternCursor::effectColumn)) dwSpeedUpMask |= (m->command != CMD_NONE) ? COLUMN_BITS_FXCMD : COLUMN_BITS_FXCMDANDPARAM;
-				}
-				if (dwSpeedUpMask == COLUMN_BITS_ALLCOLUMNS) goto DoBlit;
-			}
+			//	if (m->note == mold->note) dwSpeedUpMask |= COLUMN_BITS_NOTE;
+			//	if ((m->instr == mold->instr) || (m_nDetailLevel < PatternCursor::instrColumn)) dwSpeedUpMask |= COLUMN_BITS_INSTRUMENT;
+			//	if ( m->IsPcNote() || mold->IsPcNote() )
+			//	{
+			//		// Handle speedup mask for PC notes.
+			//		if(m->note == mold->note)
+			//		{
+			//			if(m->GetValueVolCol() == mold->GetValueVolCol() || (m_nDetailLevel < PatternCursor::volumeColumn)) dwSpeedUpMask |= COLUMN_BITS_VOLUME;
+			//			if(m->GetValueEffectCol() == mold->GetValueEffectCol() || (m_nDetailLevel < PatternCursor::effectColumn)) dwSpeedUpMask |= COLUMN_BITS_FXCMDANDPARAM;
+			//		}
+			//	} else
+			//	{
+			//		if ((m->volcmd == mold->volcmd && (m->volcmd == VOLCMD_NONE || m->vol == mold->vol) && !drawDefaultVolume && !drawOldDefaultVolume) || (m_nDetailLevel < PatternCursor::volumeColumn)) dwSpeedUpMask |= COLUMN_BITS_VOLUME;
+			//		if ((m->command == mold->command) || (m_nDetailLevel < PatternCursor::effectColumn)) dwSpeedUpMask |= (m->command != CMD_NONE) ? COLUMN_BITS_FXCMD : COLUMN_BITS_FXCMDANDPARAM;
+			//	}
+			//	if (dwSpeedUpMask == COLUMN_BITS_ALLCOLUMNS) goto DoBlit;
+			//}
 			selectedCols[col] |= COLUMN_BITS_SKIP;
 			col_sel = 0;
 			if (bRowSel) col_sel = selectedCols[col] & COLUMN_BITS_ALL;
@@ -958,15 +975,15 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 				bk_col = MODCOLOR_BACKSELECTED;
 			}
 			// Speedup: Empty command which is either not or fully selected
-			if (m->IsEmpty() && ((!col_sel) || (col_sel == COLUMN_BITS_ALLCOLUMNS)))
+			/*if (m->IsEmpty() && ((!col_sel) || (col_sel == COLUMN_BITS_ALLCOLUMNS)))
 			{
 				m_Dib.SetTextColor(tx_col, bk_col);
 				m_Dib.TextBlt(xbmp, 0, nColumnWidth-4, m_szCell.cy, pfnt->nClrX, pfnt->nClrY, pfnt->dib);
 				goto DoBlit;
-			}
+			}*/
 			x = 0;
 			// Note
-			if (!(dwSpeedUpMask & COLUMN_BITS_NOTE))
+			//if (!(dwSpeedUpMask & COLUMN_BITS_NOTE))
 			{
 				tx_col = row_col;
 				bk_col = row_bkcol;
@@ -982,7 +999,7 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 							tx_col = MODCOLOR_DODGY_COMMANDS;
 						} else if(sndFile.GetType() == MOD_TYPE_S3M && m->instr != 0 && m->instr <= sndFile.GetNumSamples())
 						{
-							uint32 period = sndFile.GetPeriodFromNote(m->note, 0, sndFile.GetSample(m->instr).nC5Speed);
+							uint32 period = sndFile.GetPeriodFromNote(m->note, m->offset, 0, sndFile.GetSample(m->instr).nC5Speed);
 							if(period < 113 * 4 || period > 856 * 4)
 							{
 								tx_col = MODCOLOR_DODGY_COMMANDS;
@@ -1003,10 +1020,26 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					DrawNote(xbmp+x, 0, m->note);
 			}
 			x += pfnt->nEltWidths[0];
+			// Offset
+			tx_col = row_col;
+			bk_col = row_bkcol;
+			if((TrackerSettings::Instance().m_dwPatternSetup & PATTERN_EFFECTHILIGHT) && (m->offset))
+			{
+				tx_col = MODCOLOR_NOTE;
+			}
+			if(col_sel & COLUMN_BITS_OFFSET)
+			{
+				tx_col = MODCOLOR_TEXTSELECTED;
+				bk_col = MODCOLOR_BACKSELECTED;
+			}
+			// Drawing offset
+			m_Dib.SetTextColor(tx_col, bk_col);
+			DrawOffset(xbmp + x, 0, m->offset);
+			x += pfnt->nEltWidths[1];
 			// Instrument
 			if (m_nDetailLevel >= PatternCursor::instrColumn)
 			{
-				if (!(dwSpeedUpMask & COLUMN_BITS_INSTRUMENT))
+				//if (!(dwSpeedUpMask & COLUMN_BITS_INSTRUMENT))
 				{
 					tx_col = row_col;
 					bk_col = row_bkcol;
@@ -1023,12 +1056,12 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					m_Dib.SetTextColor(tx_col, bk_col);
 					DrawInstrument(xbmp+x, 0, m->instr);
 				}
-				x += pfnt->nEltWidths[1];
+				x += pfnt->nEltWidths[2];
 			}
 			// Volume
 			if (m_nDetailLevel >= PatternCursor::volumeColumn)
 			{
-				if (!(dwSpeedUpMask & COLUMN_BITS_VOLUME))
+				//if (!(dwSpeedUpMask & COLUMN_BITS_VOLUME))
 				{
 					tx_col = row_col;
 					bk_col = row_bkcol;
@@ -1050,7 +1083,7 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					m_Dib.SetTextColor(tx_col, bk_col);
 					DrawVolumeCommand(xbmp + x, 0, *m, drawDefaultVolume);
 				}
-				x += pfnt->nEltWidths[2];
+				x += pfnt->nEltWidths[3];
 			}
 			// Command & param
 			if (m_nDetailLevel >= PatternCursor::effectColumn)
@@ -1064,7 +1097,7 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					if(effectColors[m->GetEffectType()] != 0)
 						fx_col = effectColors[m->GetEffectType()];
 				}
-				if (!(dwSpeedUpMask & COLUMN_BITS_FXCMD))
+				//if (!(dwSpeedUpMask & COLUMN_BITS_FXCMD))
 				{
 					tx_col = fx_col;
 					bk_col = row_bkcol;
@@ -1078,25 +1111,25 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					m_Dib.SetTextColor(tx_col, bk_col);
 					if(isPCnote)
 					{
-						m_Dib.TextBlt(xbmp + x, 0, 2, pfnt->spacingY, pfnt->nClrX+x, pfnt->nClrY, pfnt->dib);
-						m_Dib.TextBlt(xbmp + x + pfnt->pcValMargin, 0, pfnt->nEltWidths[3], m_szCell.cy, pfnt->nNumX, pfnt->nNumY+(val / 100)*pfnt->spacingY, pfnt->dib);
+						m_Dib.TextBlt(xbmp + x, 0, 2, pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0] + pfnt->nEltWidths[2] + pfnt->nEltWidths[3], pfnt->nClrY, pfnt->dib);
+						m_Dib.TextBlt(xbmp + x + pfnt->pcValMargin, 0, pfnt->nEltWidths[4], m_szCell.cy, pfnt->nNumX, pfnt->nNumY+(val / 100)*pfnt->spacingY, pfnt->dib);
 					} else
 					{
 						if(m->command != CMD_NONE)
 						{
 							char n = sndFile.GetModSpecifications().GetEffectLetter(m->command);
 							MPT_ASSERT(n >= ' ');
-							DrawLetter(xbmp+x, 0, n, pfnt->nEltWidths[3], pfnt->nCmdOfs);
+							DrawLetter(xbmp+x, 0, n, pfnt->nEltWidths[4], pfnt->nCmdOfs);
 						} else
 						{
-							m_Dib.TextBlt(xbmp+x, 0, pfnt->nEltWidths[3], pfnt->spacingY, pfnt->nClrX+x, pfnt->nClrY, pfnt->dib);
+							m_Dib.TextBlt(xbmp + x, 0, pfnt->nEltWidths[4], pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0] + pfnt->nEltWidths[2] + pfnt->nEltWidths[3], pfnt->nClrY, pfnt->dib);
 						}
 					}
 					DrawPadding(m_Dib, pfnt, xbmp + x, 0, 3);
 				}
-				x += pfnt->nEltWidths[3];
+				x += pfnt->nEltWidths[4];
 				// Param
-				if (!(dwSpeedUpMask & COLUMN_BITS_FXPARAM))
+				//if (!(dwSpeedUpMask & COLUMN_BITS_FXPARAM))
 				{
 					tx_col = fx_col;
 					bk_col = row_bkcol;
@@ -1111,23 +1144,23 @@ void CViewPattern::DrawPatternData(HDC hdc, PATTERNINDEX nPattern, bool selEnabl
 					if(isPCnote)
 					{
 						m_Dib.TextBlt(xbmp + x, 0, pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX, pfnt->nNumY+((val / 10) % 10)*pfnt->spacingY, pfnt->dib);
-						m_Dib.TextBlt(xbmp + x + pfnt->nParamHiWidth, 0, pfnt->nEltWidths[4] - pfnt->padding[4] - pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(val % 10)*pfnt->spacingY, pfnt->dib);
+						m_Dib.TextBlt(xbmp + x + pfnt->nParamHiWidth, 0, pfnt->nEltWidths[5] - pfnt->padding[5] - pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(val % 10)*pfnt->spacingY, pfnt->dib);
 					}
 					else
 					{
 						if (m->command)
 						{
 							m_Dib.TextBlt(xbmp + x, 0, pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX, pfnt->nNumY+(m->param >> 4)*pfnt->spacingY, pfnt->dib);
-							m_Dib.TextBlt(xbmp + x + pfnt->nParamHiWidth, 0, pfnt->nEltWidths[4] - pfnt->padding[4] - pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(m->param & 0x0F)*pfnt->spacingY, pfnt->dib);
+							m_Dib.TextBlt(xbmp + x + pfnt->nParamHiWidth, 0, pfnt->nEltWidths[5] - pfnt->padding[5] - pfnt->nParamHiWidth, m_szCell.cy, pfnt->nNumX+pfnt->paramLoMargin, pfnt->nNumY+(m->param & 0x0F)*pfnt->spacingY, pfnt->dib);
 						} else
 						{
-							m_Dib.TextBlt(xbmp+x, 0, pfnt->nEltWidths[4], m_szCell.cy, pfnt->nClrX+x, pfnt->nClrY, pfnt->dib);
+							m_Dib.TextBlt(xbmp + x, 0, pfnt->nEltWidths[5], m_szCell.cy, pfnt->nClrX + pfnt->nEltWidths[0] + pfnt->nEltWidths[2] + pfnt->nEltWidths[3] + pfnt->nEltWidths[4], pfnt->nClrY, pfnt->dib);
 						}
 					}
 					DrawPadding(m_Dib, pfnt, xbmp + x, 0, 4);
 				}
 			}
-		DoBlit:
+		//DoBlit:
 			nbmp++;
 			xbmp += nColumnWidth;
 			xpaint += nColumnWidth;

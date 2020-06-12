@@ -26,6 +26,7 @@ public:
 	{
 		firstColumn = 0,
 		noteColumn = firstColumn,
+		offsetColumn,
 		instrColumn,
 		volumeColumn,
 		effectColumn,
@@ -342,7 +343,7 @@ public:
 				bits &= (2 << GetLowerRight().GetColumnType()) - 1;
 			}
 		}
-		return (bits & 0x1F);
+		return (bits & 0x3F);
 	}
 
 	// Get number of rows in selection

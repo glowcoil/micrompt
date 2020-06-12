@@ -659,7 +659,16 @@ BOOL CViewPattern::PreTranslateMessage(MSG *pMsg)
 			UINT nRepCnt = LOWORD(pMsg->lParam);
 			UINT nFlags = HIWORD(pMsg->lParam);
 			KeyEventType kT = ih->GetKeyEventType(nFlags);
-			InputTargetContext ctx = (InputTargetContext)(kCtxViewPatterns + 1 + m_Cursor.GetColumnType());
+			PatternCursor::Columns column = m_Cursor.GetColumnType();
+			InputTargetContext ctx;
+			if(column == PatternCursor::Columns::offsetColumn)
+			{
+				ctx = InputTargetContext::kCtxViewPatternsOffset;
+			}
+			else
+			{
+				ctx = (InputTargetContext)(kCtxViewPatterns + column + (column < PatternCursor::Columns::offsetColumn ? 1 : 0));
+			}
 			// If editing is disabled, preview notes no matter which column we are in
 			if(!IsEditingEnabled() && TrackerSettings::Instance().patternNoEditPopup)
 				ctx = kCtxViewPatternsNote;
@@ -678,6 +687,10 @@ BOOL CViewPattern::PreTranslateMessage(MSG *pMsg)
 				} else if(ctx == kCtxViewPatternsFXparam)
 				{
 					if(ih->KeyEvent(kCtxViewPatternsFX, nChar, nRepCnt, nFlags, kT) != kcNull)
+						return true;  // Mapped to a command, no need to pass message on.
+				} else if(ctx == kCtxViewPatternsOffset)
+				{
+					if(ih->KeyEvent(kCtxViewPatternsNote, nChar, nRepCnt, nFlags, kT) != kcNull)
 						return true;  // Mapped to a command, no need to pass message on.
 				} else if(ctx == kCtxViewPatternsIns)
 				{
@@ -7042,8 +7055,8 @@ HRESULT CViewPattern::get_accName(VARIANT varChild, BSTR *pszName)
 	const ModCommand &m = GetCursorCommand();
 	const size_t columnIndex = m_Cursor.GetColumnType();
 	const TCHAR *column = _T("");
-	static constexpr const TCHAR *regularColumns[] = {_T("Note"), _T("Instrument"), _T("Volume"), _T("Effect"), _T("Parameter")};
-	static constexpr const TCHAR *pcColumns[] = {_T("Note"), _T("Plugin"), _T("Plugin Parameter"), _T("Parameter Value"), _T("Parameter Value")};
+	static constexpr const TCHAR *regularColumns[] = {_T("Note"), _T("Offset"), _T("Instrument"), _T("Volume"), _T("Effect"), _T("Parameter")};
+	static constexpr const TCHAR *pcColumns[] = {_T("Note"), _T("Offset"), _T("Plugin"), _T("Plugin Parameter"), _T("Parameter Value"), _T("Parameter Value")};
 	static_assert(PatternCursor::lastColumn + 1 == std::size(regularColumns));
 	static_assert(PatternCursor::lastColumn + 1 == std::size(pcColumns));
 

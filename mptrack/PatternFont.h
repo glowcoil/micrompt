@@ -23,8 +23,8 @@ struct PATTERNFONT
 	int nWidth, nHeight;		// Column Width & Height, including 4-pixels border
 	int nClrX, nClrY;			// Clear (empty note) location
 	int nSpaceX, nSpaceY;		// White location (must be big enough)
-	UINT nEltWidths[5];			// Elements Sizes
-	UINT padding[5];			// Padding pixels contained in element width
+	UINT nEltWidths[6];			// Elements Sizes
+	UINT padding[6];			// Padding pixels contained in element width
 	int nNumX, nNumY;			// Vertically-oriented numbers 0x00-0x0F
 	int nNum10X, nNum10Y;		// Numbers 10-29
 	int nAlphaAM_X,nAlphaAM_Y;	// Letters A-M +#
