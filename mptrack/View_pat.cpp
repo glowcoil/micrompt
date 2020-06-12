@@ -4344,6 +4344,13 @@ LRESULT CViewPattern::OnCustomKeyMsg(WPARAM wParam, LPARAM lParam)
 		return wParam;
 	}
 
+	if (wParam >= kcSetOffset0 && wParam <= kcSetOffset9)
+	{
+		if(IsEditingEnabled_bmsg())
+			TempEnterOffset(static_cast<int>(wParam) - kcSetOffset0);
+		return wParam;
+	}
+
 	if(wParam >= kcSetIns0 && wParam <= kcSetIns9)
 	{
 		if(IsEditingEnabled_bmsg())
@@ -4888,6 +4895,39 @@ void CViewPattern::TempStopOctave(int val)
 	{
 		TempStopNote(m_octaveKeyMemory[val]);
 		m_octaveKeyMemory[val] = NOTE_NONE;
+	}
+}
+
+
+void CViewPattern::TempEnterOffset(int val)
+{
+	CSoundFile *pSndFile = GetSoundFile();
+	if(pSndFile == nullptr || !IsEditingEnabled_bmsg())
+	{
+		return;
+	}
+
+	PrepareUndo(m_Cursor, m_Cursor, "Offset Entry");
+
+	ModCommand &target = GetCursorCommand();
+	ModCommand oldcmd = target;  // This is the command we are about to overwrite
+
+	UINT offset = target.offset;
+	offset = ((offset * 10) + val) % 100;
+	target.offset = static_cast<ModCommand::OFFSET>(offset);
+
+	SetSelToCursor();
+
+	if(target != oldcmd)
+	{
+		SetModified(false);
+		InvalidateCell(m_Cursor);
+		UpdateIndicator();
+	}
+
+	if(target.IsPcNote())
+	{
+		m_PCNoteEditMemory = target;
 	}
 }
 

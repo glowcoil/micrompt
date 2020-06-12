@@ -549,6 +549,17 @@ enum CommandID
 	kcNotePCS,
 	kcEndNoteMisc = kcNotePCS,
 
+	//Set offsets
+	kcSetOffset0,
+	kcSetOffset1,
+	kcSetOffset2,
+	kcSetOffset3,
+	kcSetOffset4,
+	kcSetOffset5,
+	kcSetOffset6,
+	kcSetOffset7,
+	kcSetOffset8,
+	kcSetOffset9,
 
 	//Set instruments
 	kcSetIns0,

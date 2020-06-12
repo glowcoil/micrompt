@@ -335,6 +335,7 @@ public:
 	void TempEnterIns(int val);
 	void TempEnterOctave(int val);
 	void TempStopOctave(int val);
+	void TempEnterOffset(int val);
 	void TempEnterVol(int v);
 	void TempEnterFX(ModCommand::COMMAND c, int v = -1);
 	void TempEnterFXparam(int v);

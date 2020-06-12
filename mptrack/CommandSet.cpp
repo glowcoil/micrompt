@@ -731,6 +731,16 @@ static constexpr struct
 	{2005, kcInsertWholeRowGlobal, _T("Insert Row(s) (All Channels, Global)")},
 	{2006, kcPrevSequence, _T("Previous Sequence")},
 	{2007, kcNextSequence, _T("Next Sequence")},
+	{2008, kcSetOffset0, _T("Set offset digit 0")},
+	{2009, kcSetOffset1, _T("Set offset digit 1")},
+	{2010, kcSetOffset2, _T("Set offset digit 2")},
+	{2011, kcSetOffset3, _T("Set offset digit 3")},
+	{2012, kcSetOffset4, _T("Set offset digit 4")},
+	{2013, kcSetOffset5, _T("Set offset digit 5")},
+	{2014, kcSetOffset6, _T("Set offset digit 6")},
+	{2015, kcSetOffset7, _T("Set offset digit 7")},
+	{2016, kcSetOffset8, _T("Set offset digit 8")},
+	{2017, kcSetOffset9, _T("Set offset digit 9")},
 };
 
 // Get command descriptions etc.. loaded up.
@@ -1444,7 +1454,7 @@ void CCommandSet::GenKeyMap(KeyMap &km)
 
 			// Handle super-contexts (contexts that represent a set of sub contexts)
 			if(curKc.Context() == kCtxViewPatterns)
-				contexts.insert(contexts.end(), {kCtxViewPatternsNote, kCtxViewPatternsIns, kCtxViewPatternsVol, kCtxViewPatternsFX, kCtxViewPatternsFXparam});
+				contexts.insert(contexts.end(), {kCtxViewPatternsNote, kCtxViewPatternsOffset, kCtxViewPatternsIns, kCtxViewPatternsVol, kCtxViewPatternsFX, kCtxViewPatternsFXparam});
 			else if(curKc.Context() == kCtxCtrlPatterns)
 				contexts.push_back(kCtxCtrlOrderlist);
 			else
@@ -1743,6 +1753,7 @@ CString KeyCombination::GetContextText(InputTargetContext ctx)
 		case kCtxViewGeneral:			return _T("General Context [bottom]");
 		case kCtxViewPatterns:			return _T("Pattern Context [bottom]");
 		case kCtxViewPatternsNote:		return _T("Pattern Context [bottom] - Note Col");
+	    case kCtxViewPatternsOffset:	return _T("Pattern Context [bottom] - Offset Col");
 		case kCtxViewPatternsIns:		return _T("Pattern Context [bottom] - Ins Col");
 		case kCtxViewPatternsVol:		return _T("Pattern Context [bottom] - Vol Col");
 		case kCtxViewPatternsFX:		return _T("Pattern Context [bottom] - FX Col");
@@ -1943,6 +1954,7 @@ void CCommandSet::SetupContextHierarchy()
 	m_isParentContext[kCtxAllContexts].set(kCtxViewGeneral);
 	m_isParentContext[kCtxAllContexts].set(kCtxViewPatterns);
 	m_isParentContext[kCtxAllContexts].set(kCtxViewPatternsNote);
+	m_isParentContext[kCtxAllContexts].set(kCtxViewPatternsOffset);
 	m_isParentContext[kCtxAllContexts].set(kCtxViewPatternsIns);
 	m_isParentContext[kCtxAllContexts].set(kCtxViewPatternsVol);
 	m_isParentContext[kCtxAllContexts].set(kCtxViewPatternsFX);
@@ -1963,6 +1975,7 @@ void CCommandSet::SetupContextHierarchy()
 	m_isParentContext[kCtxAllContexts].set(kCtxChannelSettings);
 
 	m_isParentContext[kCtxViewPatterns].set(kCtxViewPatternsNote);
+	m_isParentContext[kCtxViewPatterns].set(kCtxViewPatternsOffset);
 	m_isParentContext[kCtxViewPatterns].set(kCtxViewPatternsIns);
 	m_isParentContext[kCtxViewPatterns].set(kCtxViewPatternsVol);
 	m_isParentContext[kCtxViewPatterns].set(kCtxViewPatternsFX);
