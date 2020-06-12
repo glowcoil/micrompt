@@ -312,7 +312,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	, vstHostVendorString(conf, U_("VST Plugins"), U_("HostVendorString"), "OpenMPT project")
 	, vstHostVendorVersion(conf, U_("VST Plugins"), U_("HostVendorVersion"), Version::Current().GetRawVersion())
 	// Update
-	, UpdateEnabled(conf, U_("Update"), U_("Enabled"), true)
+	, UpdateEnabled(conf, U_("Update"), U_("Enabled"), false)
 	, UpdateLastUpdateCheck(conf, U_("Update"), U_("LastUpdateCheck"), mpt::Date::Unix(time_t()))
 	, UpdateUpdateCheckPeriod_DEPRECATED(conf, U_("Update"), U_("UpdateCheckPeriod"), 7)
 	, UpdateIntervalDays(conf, U_("Update"), U_("UpdateCheckIntervalDays"), 7)

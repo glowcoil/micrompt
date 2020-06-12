@@ -574,6 +574,8 @@ BOOL CUpdateSetupDlg::OnInitDialog()
 
 	CheckDlgButton(IDC_CHECK_UPDATEENABLED, TrackerSettings::Instance().UpdateEnabled ? BST_CHECKED : BST_UNCHECKED);
 
+	GetDlgItem(IDC_CHECK_UPDATEENABLED)->EnableWindow(0);
+
 	int radioID = 0;
 	int updateChannel = TrackerSettings::Instance().UpdateChannel;
 	if(updateChannel == UpdateChannelRelease)
