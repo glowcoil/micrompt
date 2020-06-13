@@ -4374,6 +4374,13 @@ LRESULT CViewPattern::OnCustomKeyMsg(WPARAM wParam, LPARAM lParam)
 		return wParam;
 	}
 
+	if (wParam == kcSetOffsetNegative || wParam == kcSetOffsetPositive)
+	{
+		if(IsEditingEnabled_bmsg())
+			TempEnterOffset(wParam == kcSetOffsetNegative ? -1 : -2);
+		return wParam;
+	}
+
 	if(wParam >= kcSetIns0 && wParam <= kcSetIns9)
 	{
 		if(IsEditingEnabled_bmsg())
@@ -4935,9 +4942,15 @@ void CViewPattern::TempEnterOffset(int val)
 	ModCommand &target = GetCursorCommand();
 	ModCommand oldcmd = target;  // This is the command we are about to overwrite
 
-	UINT offset = target.offset;
-	offset = ((offset * 10) + val) % 100;
-	target.offset = static_cast<ModCommand::OFFSET>(offset);
+	int offset = abs(target.offset);
+	int sign = target.offset >= 0 ? 1 : -1;
+	if(val >= 0)
+		offset = ((offset * 10) + val) % 100;
+	else if(val == -1)
+		sign = -1;
+	else if(val == -2)
+		sign = 1;
+	target.offset = static_cast<ModCommand::OFFSET>(sign * offset);
 
 	SetSelToCursor();
 

@@ -252,7 +252,8 @@ void COptionsKeyboard::DefineCommandCategories()
 
 	{
 		CommandCategory newCat(_T("        Pattern Editor - Offset Column"), kCtxViewPatternsOffset);
-		newCat.AddCommands(kcSetOffset0, kcSetOffset9);
+		newCat.AddCommands(kcSetOffset0, kcSetOffset9, true);
+		newCat.AddCommands(kcSetOffsetNegative, kcSetOffsetPositive);
 		commandCategories.push_back(newCat);
 	}
 

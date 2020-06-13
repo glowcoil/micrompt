@@ -437,12 +437,19 @@ void CViewPattern::DrawOffset(int x, int y, int32 offset)
 	const PATTERNFONT *pfnt = PatternFont::currentFont;
 	if(offset)
 	{
-		UINT dx = pfnt->nInstrHiWidth;
-		m_Dib.TextBlt(x, y, dx, pfnt->spacingY, pfnt->nNumX + pfnt->nInstrOfs, pfnt->nNumY + (offset / 10) * pfnt->spacingY, pfnt->dib);
-		m_Dib.TextBlt(x + dx, y, pfnt->nEltWidths[1] - dx, pfnt->spacingY, pfnt->nNumX + pfnt->paramLoMargin, pfnt->nNumY + (offset % 10) * pfnt->spacingY, pfnt->dib);
+		if(offset < 0)
+		{
+			DrawLetter(x, y, '-', pfnt->nVolHiWidth, 0);
+		} else
+		{
+			DrawLetter(x, y, '+', pfnt->nVolHiWidth, 0);
+		}
+		DrawLetter(x + pfnt->nVolHiWidth, y, static_cast<char>('0' + (abs(offset) / 10)), pfnt->nVolHiWidth, 0);
+		DrawLetter(x + 2 * pfnt->nVolHiWidth, y, static_cast<char>('0' + (abs(offset) % 10)), pfnt->nVolHiWidth + pfnt->paramLoMargin, 0);
 	} else
 	{
-		m_Dib.TextBlt(x, y, pfnt->nEltWidths[1], pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
+		m_Dib.TextBlt(x, y, pfnt->nEltWidths[1] - pfnt->nEltWidths[2], pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
+		m_Dib.TextBlt(x + pfnt->nEltWidths[1] - pfnt->nEltWidths[2], y, pfnt->nEltWidths[2], pfnt->spacingY, pfnt->nClrX + pfnt->nEltWidths[0], pfnt->nClrY, pfnt->dib);
 	}
 	DrawPadding(m_Dib, pfnt, x, y, 1);
 }

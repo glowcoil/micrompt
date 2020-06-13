@@ -492,3 +492,5 @@ version:1
 21:2016:0:56:1       //Set offset digit 8: 8 (KeyDown)
 21:2017:0:105:1      //Set offset digit 9: NUM 9 (KeyDown)
 21:2017:0:57:1       //Set offset digit 9: 9 (KeyDown)
+21:2018:0:189:1      //Set offset sign to negative
+21:2019:1:187:1      //Set offset sign to positive

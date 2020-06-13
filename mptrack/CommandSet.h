@@ -561,6 +561,9 @@ enum CommandID
 	kcSetOffset8,
 	kcSetOffset9,
 
+	kcSetOffsetNegative,
+	kcSetOffsetPositive,
+
 	//Set instruments
 	kcSetIns0,
 	kcSetIns1,

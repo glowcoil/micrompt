@@ -218,7 +218,7 @@ public:
 
 public:
 	uint8 note = NOTE_NONE;
-	uint8 offset = 0;
+	int8 offset = 0;
 	uint8 instr = 0;
 	uint8 volcmd = VOLCMD_NONE;
 	uint8 command = CMD_NONE;

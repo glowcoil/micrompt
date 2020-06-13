@@ -741,6 +741,8 @@ static constexpr struct
 	{2015, kcSetOffset7, _T("Set offset digit 7")},
 	{2016, kcSetOffset8, _T("Set offset digit 8")},
 	{2017, kcSetOffset9, _T("Set offset digit 9")},
+    {2018, kcSetOffsetNegative, _T("Set offset sign to negative")},
+    {2019, kcSetOffsetPositive, _T("Set offset sign to positive")},
 };
 
 // Get command descriptions etc.. loaded up.
