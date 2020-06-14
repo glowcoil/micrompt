@@ -257,10 +257,11 @@ std::string PatternClipboard::CreateClipboardString(const CSoundFile &sndFile, P
 					}
 					else
 					{
-						data += ' ';
+						data += '+';
 					}
-					data += ('0' + (m->offset / 10));
-					data += ('0' + (m->offset % 10));
+					int8 offset = static_cast<int8>(abs(m->offset));
+					data += ('0' + (offset / 10));
+					data += ('0' + (offset % 10));
 				} else
 				{
 					data += "...";
@@ -804,11 +805,11 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 				}
 
 				// Offset
-				if(data[pos + 4] != ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.offset == 0) || (doITStyleMix && origModCmd.note == NOTE_NONE && origModCmd.instr == 0 && origModCmd.volcmd == VOLCMD_NONE))))
+				if(data[pos + 3] != ' ' && (!doMixPaste || ((!doITStyleMix && origModCmd.offset == 0) || (doITStyleMix && origModCmd.note == NOTE_NONE && origModCmd.instr == 0 && origModCmd.volcmd == VOLCMD_NONE))))
 				{
 					firstCol = std::min(firstCol, PatternCursor::offsetColumn);
 					lastCol = std::max(lastCol, PatternCursor::offsetColumn);
-					if(data[pos + 4] >= '0' && data[pos + 4] <= '9' && data[pos + 5] >= '0' && data[pos + 5] <= '9')
+					if(data[pos + 3] == '+' || data[pos + 3] == '-' || data[pos + 4] >= '0' && data[pos + 4] <= '9' && data[pos + 5] >= '0' && data[pos + 5] <= '9')
 					{
 						m.offset = (data[pos + 4] - '0') * 10 + (data[pos + 5] - '0');
 						if(data[pos + 3] == '-')
@@ -825,7 +826,7 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 					lastCol = std::max(lastCol, PatternCursor::instrColumn);
 					if(data[pos + 6] >= '0' && data[pos + 6] <= ('0' + (MAX_INSTRUMENTS / 10)))
 					{
-						m.instr = (data[pos + 6] - '0') * 10 + (data[pos + 7] - '0');
+						m.instr = (data[pos + 6] - '0') * 10 + (data[pos + 8] - '0');
 					} else m.instr = 0;
 				}
 
@@ -852,7 +853,7 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 									break;
 								}
 							}
-							m.vol = (data[pos + 9] - '0') * 10 + (data[pos + 8] - '0');
+							m.vol = (data[pos + 9] - '0') * 10 + (data[pos + 10] - '0');
 						}
 					} else
 					{
@@ -864,11 +865,11 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 				// Effect
 				if(m.IsPcNote())
 				{
-					if(data[pos + 11] != '.' && data[pos + 9] > ' ')
+					if(data[pos + 11] != '.' && data[pos + 11] > ' ')
 					{
 						firstCol = std::min(firstCol, PatternCursor::paramColumn);
 						lastCol = std::max(lastCol, PatternCursor::paramColumn);
-						m.SetValueEffectCol(ConvertStrTo<uint16>(data.substr(pos + 10, 3)));
+						m.SetValueEffectCol(ConvertStrTo<uint16>(data.substr(pos + 11, 3)));
 					} else if(!origModCmd.IsPcNote())
 					{
 						// No value provided in clipboard
@@ -977,7 +978,7 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 				pasteRect = PatternRect(startPoint, endPoint);
 			}
 
-			pos += 11;
+			pos += 14;
 			col++;
 		}
 		// Next row
