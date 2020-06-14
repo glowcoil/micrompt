@@ -454,3 +454,27 @@ version:1
 20:1879:1:39:5		//Next Channel: Shift+Right (KeyDown|KeyHold)
 20:1879:1:13:5		//Next Channel: Shift+Enter (KeyDown|KeyHold)
 20:1880:0:13:1		//Switch to Pattern Editor: Enter (KeyDown)
+
+//----( Pattern Context [bottom] - Offset Col )------------
+21:2008:0:96:1       //Set offset digit 0: NUM 0 (KeyDown)
+21:2008:0:48:1       //Set offset digit 0: 0 (KeyDown)
+21:2009:0:97:1       //Set offset digit 1: NUM 1 (KeyDown)
+21:2009:0:49:1       //Set offset digit 1: 1 (KeyDown)
+21:2010:0:98:1       //Set offset digit 2: NUM 2 (KeyDown)
+21:2010:0:50:1       //Set offset digit 2: 2 (KeyDown)
+21:2011:0:99:1       //Set offset digit 3: NUM 3 (KeyDown)
+21:2011:0:51:1       //Set offset digit 3: 3 (KeyDown)
+21:2012:0:100:1      //Set offset digit 4: NUM 4 (KeyDown)
+21:2012:0:52:1       //Set offset digit 4: 4 (KeyDown)
+21:2013:0:101:1      //Set offset digit 5: NUM 5 (KeyDown)
+21:2013:0:53:1       //Set offset digit 5: 5 (KeyDown)
+21:2014:0:102:1      //Set offset digit 6: NUM 6 (KeyDown)
+21:2014:0:54:1       //Set offset digit 6: 6 (KeyDown)
+21:2015:0:103:1      //Set offset digit 7: NUM 7 (KeyDown)
+21:2015:0:55:1       //Set offset digit 7: 7 (KeyDown)
+21:2016:0:104:1      //Set offset digit 8: NUM 8 (KeyDown)
+21:2016:0:56:1       //Set offset digit 8: 8 (KeyDown)
+21:2017:0:105:1      //Set offset digit 9: NUM 9 (KeyDown)
+21:2017:0:57:1       //Set offset digit 9: 9 (KeyDown)
+21:2018:0:189:1      //Set offset sign to negative
+21:2019:1:187:1      //Set offset sign to positive
