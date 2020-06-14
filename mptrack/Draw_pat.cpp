@@ -269,7 +269,7 @@ PatternCursor CViewPattern::GetPositionFromPoint(POINT pt) const
 	int y = yofs - m_nMidRow + (pt.y - m_szHeader.cy + GetSmoothScrollOffset()) / m_szCell.cy;
 	if (y < 0) y = 0;
 	int xx = (pt.x - m_szHeader.cx) % GetColumnWidth(), dx = 0;
-	int imax = 4;
+	int imax = PatternCursor::lastColumn;
 	if (imax > (int)m_nDetailLevel + 1) imax = m_nDetailLevel + 1;
 	int i = 0;
 	for (i=0; i<imax; i++)
