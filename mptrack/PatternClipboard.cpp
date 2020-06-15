@@ -826,7 +826,7 @@ bool PatternClipboard::HandlePaste(CSoundFile &sndFile, PatternEditPos &pastePos
 					lastCol = std::max(lastCol, PatternCursor::instrColumn);
 					if(data[pos + 6] >= '0' && data[pos + 6] <= ('0' + (MAX_INSTRUMENTS / 10)))
 					{
-						m.instr = (data[pos + 6] - '0') * 10 + (data[pos + 8] - '0');
+						m.instr = (data[pos + 6] - '0') * 10 + (data[pos + 7] - '0');
 					} else m.instr = 0;
 				}
 
