@@ -1098,7 +1098,7 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 
 				if(GetType() == MOD_TYPE_UPT)
 				{
-					uint8 offset = patternData.ReadUint8();
+					int8 offset = patternData.ReadInt8();
 					offset %= 100;
 					m.offset = offset;
 					lastValue[ch].offset = offset;
