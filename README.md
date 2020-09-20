@@ -3,6 +3,11 @@ README
 ======
 
 
+Microplug is a fork of OpenMPT that adds a high-resolution pitch offset column (given as cents, or hundredths of a half-step) for the purposes of microtonal composition. Use at your own risk; it has been tested, but not exhaustively.
+
+The original README is reproduced below.
+
+
 OpenMPT and libopenmpt
 ======================
 
